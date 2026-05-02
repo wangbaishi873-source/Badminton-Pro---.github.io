@@ -703,6 +703,606 @@
                 margin: 0 auto;
             }
         }
+
+        /* ==================== 横屏全屏赛事模式 ==================== */
+
+        /* 横屏检测类 */
+        .landscape-mode .portrait-only { display: none !important; }
+        .landscape-only { display: none !important; }
+        .landscape-mode .landscape-only { display: flex !important; }
+
+        /* 横屏全屏赛事记分牌容器 */
+        #landscapeScoreboard {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: linear-gradient(135deg, #0A0A0F 0%, #1a1a2e 100%);
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .landscape-mode #landscapeScoreboard {
+            display: flex;
+        }
+
+        .landscape-mode #scoringPage > div:first-child,
+        .landscape-mode #scoringPage > div:not(.scoring-container) {
+            display: none !important;
+        }
+
+        /* 横屏顶部状态栏 */
+        .landscape-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .landscape-timer {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 20px rgba(0, 255, 135, 0.5);
+        }
+
+        .landscape-badges {
+            display: flex;
+            gap: 12px;
+        }
+
+        .landscape-badge {
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            background: rgba(0, 255, 135, 0.15);
+            color: #00FF87;
+            border: 1px solid rgba(0, 255, 135, 0.3);
+        }
+
+        .landscape-fullscreen-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .landscape-fullscreen-btn:hover {
+            background: rgba(0, 255, 135, 0.2);
+            border-color: #00FF87;
+        }
+
+        /* 横屏主体比分区 */
+        .landscape-score-area {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 比分区域 - 左右分栏 */
+        .landscape-player-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .landscape-player-side.left {
+            background: linear-gradient(135deg, rgba(0, 255, 135, 0.05) 0%, rgba(0, 255, 135, 0.02) 100%);
+        }
+
+        .landscape-player-side.right {
+            background: linear-gradient(225deg, rgba(0, 212, 255, 0.05) 0%, rgba(0, 212, 255, 0.02) 100%);
+        }
+
+        /* 发球方高亮边框 */
+        .landscape-player-side.serving {
+            position: relative;
+        }
+
+        .landscape-player-side.serving::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border: 3px solid #00FF87;
+            border-radius: 0;
+            animation: servingPulse 1.5s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes servingPulse {
+            0%, 100% { opacity: 1; box-shadow: inset 0 0 30px rgba(0, 255, 135, 0.3); }
+            50% { opacity: 0.6; box-shadow: inset 0 0 50px rgba(0, 255, 135, 0.5); }
+        }
+
+        /* 发球指示器 */
+        .landscape-serving-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #00FF87, #00D4FF);
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #000;
+            animation: servingIconPulse 1s ease-in-out infinite;
+        }
+
+        .landscape-player-side:not(.serving) .landscape-serving-indicator {
+            display: none;
+        }
+
+        @keyframes servingIconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .serving-dot {
+            width: 8px;
+            height: 8px;
+            background: #000;
+            border-radius: 50%;
+            animation: dotBlink 0.8s ease-in-out infinite;
+        }
+
+        @keyframes dotBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* 选手名称 */
+        .landscape-player-name {
+            font-size: clamp(16px, 3vw, 28px);
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 局数指示器 */
+        .landscape-games-won {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .landscape-game-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s;
+        }
+
+        .landscape-game-dot.won {
+            background: #00FF87;
+            box-shadow: 0 0 15px rgba(0, 255, 135, 0.6);
+        }
+
+        .landscape-player-side.right .landscape-game-dot.won {
+            background: #00D4FF;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.6);
+        }
+
+        /* 超大比分显示 */
+        .landscape-score {
+            font-size: clamp(100px, 25vw, 280px);
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+            background: linear-gradient(180deg, #FFFFFF 0%, rgba(255, 255, 255, 0.8) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.3));
+            transition: all 0.2s;
+            will-change: transform, opacity;
+        }
+
+        .landscape-player-side.left .landscape-score {
+            background: linear-gradient(180deg, #00FF87 0%, rgba(0, 255, 135, 0.8) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 30px rgba(0, 255, 135, 0.5));
+        }
+
+        .landscape-player-side.right .landscape-score {
+            background: linear-gradient(180deg, #00D4FF 0%, rgba(0, 212, 255, 0.8) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 30px rgba(0, 212, 255, 0.5));
+        }
+
+        /* 比分动画 */
+        .landscape-score.score-up {
+            animation: scoreBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes scoreBounce {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.25); }
+            100% { transform: scale(1); }
+        }
+
+        .landscape-score.score-glow {
+            animation: scoreGlow 0.5s ease-out;
+        }
+
+        @keyframes scoreGlow {
+            0% { filter: drop-shadow(0 0 0px rgba(255, 255, 255, 0)); }
+            50% { filter: drop-shadow(0 0 60px rgba(255, 255, 255, 0.8)); }
+            100% { filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.3)); }
+        }
+
+        /* 中间VS区域 */
+        .landscape-vs-divider {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .landscape-vs {
+            font-size: clamp(24px, 5vw, 48px);
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.15);
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .landscape-match-point {
+            margin-top: 10px;
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #FF6B35, #FF3B5C);
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            animation: matchPointPulse 1s ease-in-out infinite;
+            box-shadow: 0 0 30px rgba(255, 107, 53, 0.5);
+        }
+
+        .landscape-match-point.hidden {
+            display: none;
+        }
+
+        @keyframes matchPointPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        /* 底部控制栏 */
+        .landscape-control-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 24px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .landscape-control-btn {
+            min-width: 80px;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .landscape-control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .landscape-btn-add {
+            background: linear-gradient(135deg, #00FF87, #00D4FF);
+            color: #000;
+            box-shadow: 0 4px 20px rgba(0, 255, 135, 0.4);
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .landscape-btn-add:hover {
+            box-shadow: 0 6px 30px rgba(0, 255, 135, 0.6);
+        }
+
+        .landscape-btn-add-a {
+            background: linear-gradient(135deg, #00FF87, #00D4FF);
+        }
+
+        .landscape-btn-add-b {
+            background: linear-gradient(135deg, #00D4FF, #00FF87);
+        }
+
+        .landscape-btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .landscape-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .landscape-btn-danger {
+            background: rgba(255, 59, 92, 0.2);
+            color: #FF3B5C;
+            border: 1px solid rgba(255, 59, 92, 0.3);
+        }
+
+        .landscape-exit-btn {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .landscape-exit-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        /* Deuce/加时状态 */
+        .landscape-score-area.deuce-state {
+            animation: deuceBgPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes deuceBgPulse {
+            0%, 100% { background: linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(255, 59, 92, 0.1) 100%); }
+            50% { background: linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(255, 59, 92, 0.2) 100%); }
+        }
+
+        .landscape-deuce-banner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 50px;
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.9), rgba(255, 59, 92, 0.9));
+            border-radius: 20px;
+            text-align: center;
+            z-index: 20;
+            animation: deuceBannerPulse 1.5s ease-in-out infinite;
+            box-shadow: 0 0 50px rgba(255, 107, 53, 0.6);
+        }
+
+        .landscape-deuce-banner.hidden {
+            display: none;
+        }
+
+        @keyframes deuceBannerPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+        }
+
+        .landscape-deuce-title {
+            font-size: clamp(28px, 6vw, 56px);
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+        }
+
+        .landscape-deuce-subtitle {
+            font-size: clamp(12px, 2vw, 18px);
+            color: rgba(255, 255, 255, 0.9);
+            margin-top: 5px;
+        }
+
+        /* 胜利庆祝 */
+        .landscape-victory-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+
+        .landscape-victory-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .landscape-victory-trophy {
+            font-size: clamp(60px, 15vw, 150px);
+            animation: trophyBounce 1s ease-out;
+        }
+
+        @keyframes trophyBounce {
+            0% { transform: scale(0) rotate(-20deg); }
+            50% { transform: scale(1.2) rotate(10deg); }
+            70% { transform: scale(0.9) rotate(-5deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .landscape-victory-text {
+            font-size: clamp(24px, 6vw, 60px);
+            font-weight: 900;
+            background: linear-gradient(135deg, #FFD700, #FF6B35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-top: 20px;
+            animation: victoryTextGlow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes victoryTextGlow {
+            0%, 100% { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5)); }
+            50% { filter: drop-shadow(0 0 40px rgba(255, 215, 0, 0.8)); }
+        }
+
+        .landscape-victory-score {
+            font-size: clamp(40px, 10vw, 100px);
+            font-weight: 900;
+            color: #fff;
+            margin-top: 10px;
+        }
+
+        .landscape-victory-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 40px;
+        }
+
+        /* 横屏手势区域 */
+        .landscape-gesture-zone {
+            position: absolute;
+            top: 0;
+            bottom: 80px;
+            width: 50%;
+            z-index: 5;
+            cursor: pointer;
+        }
+
+        .landscape-gesture-zone.left {
+            left: 0;
+        }
+
+        .landscape-gesture-zone.right {
+            right: 0;
+        }
+
+        .landscape-gesture-zone:active {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* 触摸反馈涟漪 */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0);
+            animation: rippleEffect 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes rippleEffect {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* 全屏提示 */
+        .fullscreen-hint {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            color: #fff;
+            font-size: 13px;
+            cursor: pointer;
+            z-index: 50;
+            animation: hintBounce 2s ease-in-out infinite;
+        }
+
+        .fullscreen-hint.hidden {
+            display: none;
+        }
+
+        @keyframes hintBounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+        }
+
+        /* 粒子效果容器 */
+        .particle-container {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 50;
+        }
+
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: particleFall 3s linear forwards;
+        }
+
+        @keyframes particleFall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* 性能优化 */
+        .landscape-score, .landscape-deuce-banner, .landscape-victory-trophy {
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+        }
+
+        /* 低性能设备降级 */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -992,6 +1592,109 @@
             </div>
         </div>
 
+        <!-- 横屏全屏赛事模式 -->
+        <div id="landscapeScoreboard" class="landscape-only">
+            <!-- 顶部状态栏 -->
+            <div class="landscape-header">
+                <div class="landscape-timer" id="landscapeTimer">00:00</div>
+                <div class="landscape-badges">
+                    <span class="landscape-badge" id="landscapeGameBadge">第 1 局</span>
+                    <span class="landscape-badge" id="landscapeScoringBadge">21分制</span>
+                </div>
+                <button class="landscape-fullscreen-btn" onclick="toggleFullscreen()" aria-label="全屏">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- 主体比分区 -->
+            <div class="landscape-score-area" id="landscapeScoreArea">
+                <!-- A方 -->
+                <div class="landscape-player-side left" id="landscapeSideA">
+                    <div class="landscape-serving-indicator">
+                        <span class="serving-dot"></span>
+                        发球
+                    </div>
+                    <div class="landscape-games-won" id="landscapeGamesA"></div>
+                    <div class="landscape-player-name" id="landscapeNameA">选手 A</div>
+                    <div class="landscape-score" id="landscapeScoreA">0</div>
+                </div>
+
+                <!-- B方 -->
+                <div class="landscape-player-side right" id="landscapeSideB">
+                    <div class="landscape-serving-indicator">
+                        <span class="serving-dot"></span>
+                        发球
+                    </div>
+                    <div class="landscape-games-won" id="landscapeGamesB"></div>
+                    <div class="landscape-player-name" id="landscapeNameB">选手 B</div>
+                    <div class="landscape-score" id="landscapeScoreB">0</div>
+                </div>
+
+                <!-- 中间VS区域 -->
+                <div class="landscape-vs-divider">
+                    <div class="landscape-vs">VS</div>
+                    <div class="landscape-match-point hidden" id="landscapeMatchPoint">赛点</div>
+                </div>
+
+                <!-- 手势区域 -->
+                <div class="landscape-gesture-zone left" id="gestureZoneA"></div>
+                <div class="landscape-gesture-zone right" id="gestureZoneB"></div>
+
+                <!-- Deuce横幅 -->
+                <div class="landscape-deuce-banner hidden" id="landscapeDeuceBanner">
+                    <div class="landscape-deuce-title">DEUCE</div>
+                    <div class="landscape-deuce-subtitle">加时赛 · 领先2分获胜</div>
+                </div>
+
+                <!-- 全屏提示 -->
+                <div class="fullscreen-hint" id="fullscreenHint" onclick="requestFullscreen()">
+                    点击进入全屏模式
+                </div>
+            </div>
+
+            <!-- 底部控制栏 -->
+            <div class="landscape-control-bar">
+                <button class="landscape-control-btn landscape-btn-secondary" onclick="landscapeUndo()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+                        <path d="M3 10h10a5 5 0 0 1 5 5v2M3 10l6-6M3 10l6 6"/>
+                    </svg>
+                    撤销
+                </button>
+                <button class="landscape-control-btn landscape-btn-add landscape-btn-add-a" onclick="landscapeAddScore('A')">
+                    +1 A
+                </button>
+                <button class="landscape-control-btn landscape-btn-add landscape-btn-add-b" onclick="landscapeAddScore('B')">
+                    +1 B
+                </button>
+                <button class="landscape-control-btn landscape-btn-secondary" onclick="landscapeSwitchServer()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+                        <path d="M17 1l4 4-4 4"/>
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                        <path d="M7 23l-4-4 4-4"/>
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                    </svg>
+                    换发球
+                </button>
+                <button class="landscape-control-btn landscape-btn-danger" onclick="landscapeExit()">
+                    退出
+                </button>
+            </div>
+
+            <!-- 胜利庆祝 -->
+            <div class="landscape-victory-overlay" id="landscapeVictoryOverlay">
+                <div class="particle-container" id="particleContainer"></div>
+                <div class="landscape-victory-trophy">🏆</div>
+                <div class="landscape-victory-text" id="landscapeVictoryText">WINNER</div>
+                <div class="landscape-victory-score" id="landscapeVictoryScore">2 - 0</div>
+                <div class="landscape-victory-actions">
+                    <button class="landscape-control-btn landscape-btn-secondary" onclick="landscapeNewMatch()">再来一局</button>
+                    <button class="landscape-control-btn landscape-btn-add" onclick="landscapeExit()">返回</button>
+                </div>
+            </div>
+        </div>
+
         <div id="endPage" class="page">
             <div style="max-width: 600px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; padding: 40px 20px;">
                 <div id="confettiContainer" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;"></div>
@@ -1129,11 +1832,121 @@
                 timer: { started: false, elapsed: 0, interval: null },
                 currentServer: 'A',
                 isDeuce: false,
+                isAtCap: false,
                 gamesWonA: 0,
                 gamesWonB: 0,
                 isComplete: false,
                 winner: null,
                 history: []
+            },
+            ui: {
+                landscapeMode: false,
+                fullscreen: false
+            }
+        };
+
+        const actionTypes = {
+            INCREMENT_SCORE: 'INCREMENT_SCORE',
+            DECREMENT_SCORE: 'DECREMENT_SCORE',
+            SWITCH_SERVER: 'SWITCH_SERVER',
+            UNDO: 'UNDO',
+            SET_LANDSCAPE_MODE: 'SET_LANDSCAPE_MODE',
+            SET_FULLSCREEN: 'SET_FULLSCREEN',
+            RESET_GAME: 'RESET_GAME',
+            END_GAME: 'END_GAME'
+        };
+
+        let historyStates = [];
+
+        const ActionCreators = {
+            undo: () => ({ type: actionTypes.UNDO }),
+            switchServer: () => ({ type: actionTypes.SWITCH_SERVER }),
+            incrementScore: (player) => ({ type: actionTypes.INCREMENT_SCORE, player }),
+            decrementScore: (player) => ({ type: actionTypes.DECREMENT_SCORE, player }),
+            setLandscapeMode: (enabled) => ({ type: actionTypes.SET_LANDSCAPE_MODE, enabled }),
+            setFullscreen: (enabled) => ({ type: actionTypes.SET_FULLSCREEN, enabled }),
+            resetGame: () => ({ type: actionTypes.RESET_GAME }),
+            endGame: () => ({ type: actionTypes.END_GAME })
+        };
+
+        function saveHistoryState() {
+            historyStates.push(JSON.parse(JSON.stringify({
+                playerA: { score: state.match.playerA.score, games: [...state.match.playerA.games] },
+                playerB: { score: state.match.playerB.score, games: [...state.match.playerB.games] },
+                gamesWonA: state.match.gamesWonA,
+                gamesWonB: state.match.gamesWonB,
+                currentServer: state.match.currentServer,
+                isDeuce: state.match.isDeuce,
+                isAtCap: state.match.isAtCap
+            })));
+            if (historyStates.length > 50) {
+                historyStates = historyStates.slice(-50);
+            }
+        }
+
+        function reducer(action) {
+            switch (action.type) {
+                case actionTypes.UNDO:
+                    if (historyStates.length > 0) {
+                        const prevState = historyStates.pop();
+                        Object.assign(state.match.playerA, { score: prevState.playerA.score, games: prevState.playerA.games });
+                        Object.assign(state.match.playerB, { score: prevState.playerB.score, games: prevState.playerB.games });
+                        state.match.gamesWonA = prevState.gamesWonA;
+                        state.match.gamesWonB = prevState.gamesWonB;
+                        state.match.currentServer = prevState.currentServer;
+                        state.match.isDeuce = prevState.isDeuce;
+                        state.match.isAtCap = prevState.isAtCap;
+                        return true;
+                    }
+                    return false;
+
+                case actionTypes.SWITCH_SERVER:
+                    if (!state.match.isComplete) {
+                        state.match.currentServer = state.match.currentServer === 'A' ? 'B' : 'A';
+                        return true;
+                    }
+                    return false;
+
+                case actionTypes.SET_LANDSCAPE_MODE:
+                    state.ui.landscapeMode = action.enabled;
+                    return true;
+
+                case actionTypes.SET_FULLSCREEN:
+                    state.ui.fullscreen = action.enabled;
+                    return true;
+
+                case actionTypes.RESET_GAME:
+                    state.match.playerA.score = 0;
+                    state.match.playerB.score = 0;
+                    state.match.isDeuce = false;
+                    state.match.isAtCap = false;
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        const store = {
+            _subscribers: [],
+            getState: () => state,
+            subscribe: (callback) => {
+                store._subscribers.push(callback);
+                return {
+                    unsubscribe: () => {
+                        const index = store._subscribers.indexOf(callback);
+                        if (index > -1) {
+                            store._subscribers.splice(index, 1);
+                        }
+                    }
+                };
+            },
+            dispatch: (action) => {
+                const changed = reducer(action);
+                if (changed) {
+                    store._subscribers.forEach(callback => callback(state));
+                }
+                return changed;
             }
         };
 
@@ -1352,6 +2165,8 @@
         function incrementScore(player) {
             if (state.match.isComplete) return;
 
+            saveHistoryState();
+
             if (!state.match.timer.started) {
                 startTimer();
             }
@@ -1371,6 +2186,8 @@
 
         function decrementScore(player) {
             if (state.match.isComplete) return;
+
+            saveHistoryState();
 
             if (player === 'A' && state.match.playerA.score > 0) {
                 state.match.playerA.score--;
@@ -1431,9 +2248,9 @@
             }
 
             if (winner) {
-                if (gamesA + gamesB > 0 || state.match.playerA.score > 0 || state.match.playerB.score > 0) {
-                    state.match.playerA.games.push(state.match.playerA.score);
-                    state.match.playerB.games.push(state.match.playerB.score);
+                if (scoreA > 0 || scoreB > 0) {
+                    state.match.playerA.games.push(scoreA);
+                    state.match.playerB.games.push(scoreB);
                 }
 
                 if (winner === 'A') {
@@ -1852,16 +2669,468 @@
             updateOnlineStatus();
         }
 
-        // Enhanced init
         function initPWA() {
             registerServiceWorker();
             handleInstallPrompt();
             setupOfflineIndicator();
         }
 
+        // ==================== 横屏全屏赛事模式 ====================
+
+        let isLandscapeMode = false;
+        let isFullscreen = false;
+        let landscapeGestureStartTime = 0;
+        let landscapeLongPressTimer = null;
+
+        /**
+         * 检测横屏模式
+         */
+        function detectLandscape() {
+            const isLandscape = window.matchMedia('(orientation: landscape)').matches ||
+                              (window.innerWidth > window.innerHeight && window.innerWidth > 600);
+            const isInScoringPage = state && state.currentPage === 'scoringPage';
+
+            if (isLandscape && isInScoringPage) {
+                enableLandscapeMode();
+            } else {
+                disableLandscapeMode();
+            }
+        }
+
+        /**
+         * 启用横屏模式
+         */
+        function enableLandscapeMode() {
+            if (isLandscapeMode) return;
+            isLandscapeMode = true;
+
+            document.body.classList.add('landscape-mode');
+            updateLandscapeUI();
+
+            // 尝试自动全屏
+            setTimeout(() => {
+                requestFullscreen();
+            }, 500);
+        }
+
+        /**
+         * 禁用横屏模式
+         */
+        function disableLandscapeMode() {
+            if (!isLandscapeMode) return;
+            isLandscapeMode = false;
+
+            document.body.classList.remove('landscape-mode');
+            exitFullscreen();
+        }
+
+        /**
+         * 更新横屏UI
+         */
+        function updateLandscapeUI() {
+            const s = state;
+
+            // 更新比分
+            document.getElementById('landscapeScoreA').textContent = s.match.playerA.score;
+            document.getElementById('landscapeScoreB').textContent = s.match.playerB.score;
+            document.getElementById('landscapeNameA').textContent = s.match.playerA.name;
+            document.getElementById('landscapeNameB').textContent = s.match.playerB.name;
+
+            // 更新局数
+            const currentGame = s.match.gamesWonA + s.match.gamesWonB + 1;
+            document.getElementById('landscapeGameBadge').textContent = '第 ' + currentGame + ' 局';
+            document.getElementById('landscapeScoringBadge').textContent = s.settings.scoring + '分制';
+
+            // 更新局数指示器
+            updateLandscapeGamesWon(s);
+
+            // 更新发球方
+            updateLandscapeServer(s);
+
+            // 更新计时器
+            document.getElementById('landscapeTimer').textContent = formatTime(s.match.timer.elapsed);
+
+            // 更新Deuce状态
+            const scoreArea = document.getElementById('landscapeScoreArea');
+            const deuceBanner = document.getElementById('landscapeDeuceBanner');
+            const matchPoint = document.getElementById('landscapeMatchPoint');
+
+            if (s.match.isDeuce) {
+                scoreArea.classList.add('deuce-state');
+                deuceBanner.classList.remove('hidden');
+                matchPoint.classList.add('hidden');
+            } else {
+                scoreArea.classList.remove('deuce-state');
+                deuceBanner.classList.add('hidden');
+
+                // 检查赛点
+                const vm = window.voiceManager;
+                const isMP = vm && vm.isMatchPoint(s.match.playerA.score, s.match.playerB.score);
+                if (isMP) {
+                    matchPoint.classList.remove('hidden');
+                } else {
+                    matchPoint.classList.add('hidden');
+                }
+            }
+        }
+
+        /**
+         * 更新横屏局数指示器
+         */
+        function updateLandscapeGamesWon(s) {
+            const gamesToWin = s.settings.gamesToWin;
+            const gamesA = s.match.gamesWonA;
+            const gamesB = s.match.gamesWonB;
+
+            const containerA = document.getElementById('landscapeGamesA');
+            const containerB = document.getElementById('landscapeGamesB');
+
+            containerA.innerHTML = '';
+            containerB.innerHTML = '';
+
+            for (let i = 0; i < gamesToWin; i++) {
+                const dotA = document.createElement('div');
+                dotA.className = 'landscape-game-dot' + (i < gamesA ? ' won' : '');
+                containerA.appendChild(dotA);
+
+                const dotB = document.createElement('div');
+                dotB.className = 'landscape-game-dot' + (i < gamesB ? ' won' : '');
+                containerB.appendChild(dotB);
+            }
+        }
+
+        /**
+         * 更新横屏发球方
+         */
+        function updateLandscapeServer(s) {
+            const sideA = document.getElementById('landscapeSideA');
+            const sideB = document.getElementById('landscapeSideB');
+
+            sideA.classList.toggle('serving', s.match.currentServer === 'A');
+            sideB.classList.toggle('serving', s.match.currentServer === 'B');
+        }
+
+        /**
+         * 横屏加分
+         */
+        function landscapeAddScore(player) {
+            incrementScore(player);
+
+            // 触觉反馈
+            if (navigator.vibrate) {
+                navigator.vibrate(30);
+            }
+
+            // 涟漪动画
+            const zone = player === 'A' ? 'gestureZoneA' : 'gestureZoneB';
+            createRipple(document.getElementById(zone));
+
+            // 更新UI
+            setTimeout(updateLandscapeUI, 50);
+        }
+
+        /**
+         * 横屏撤销
+         */
+        function landscapeUndo() {
+            store.dispatch(ActionCreators.undo());
+            updateLandscapeUI();
+
+            if (navigator.vibrate) {
+                navigator.vibrate(20);
+            }
+        }
+
+        /**
+         * 横屏切换发球
+         */
+        function landscapeSwitchServer() {
+            store.dispatch(ActionCreators.switchServer());
+            updateLandscapeUI();
+
+            if (navigator.vibrate) {
+                navigator.vibrate(20);
+            }
+        }
+
+        /**
+         * 横屏退出
+         */
+        function landscapeExit() {
+            disableLandscapeMode();
+            showExitConfirm();
+        }
+
+        /**
+         * 横屏新比赛
+         */
+        function landscapeNewMatch() {
+            disableLandscapeMode();
+            newMatch();
+        }
+
+        /**
+         * 创建涟漪效果
+         */
+        function createRipple(element, event) {
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+
+            const rect = element.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = (event?.clientX - rect.left - size / 2) + 'px';
+            ripple.style.top = (event?.clientY - rect.top - size / 2) + 'px';
+
+            element.appendChild(ripple);
+
+            setTimeout(() => ripple.remove(), 600);
+        }
+
+        /**
+         * 全屏模式切换
+         */
+        function toggleFullscreen() {
+            if (isFullscreen) {
+                exitFullscreen();
+            } else {
+                requestFullscreen();
+            }
+        }
+
+        /**
+         * 请求全屏
+         */
+        function requestFullscreen() {
+            const elem = document.documentElement;
+
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(() => {
+                    showFullscreenHint();
+                });
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            } else {
+                showFullscreenHint();
+            }
+        }
+
+        /**
+         * 退出全屏
+         */
+        function exitFullscreen() {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
+
+        /**
+         * 显示全屏提示
+         */
+        function showFullscreenHint() {
+            const hint = document.getElementById('fullscreenHint');
+            if (hint) {
+                hint.classList.remove('hidden');
+            }
+        }
+
+        /**
+         * 横屏胜利庆祝
+         */
+        function showLandscapeVictory(winner, scoreA, scoreB) {
+            const overlay = document.getElementById('landscapeVictoryOverlay');
+            const text = document.getElementById('landscapeVictoryText');
+            const score = document.getElementById('landscapeVictoryScore');
+
+            const winnerName = winner === 'A' ? state.match.playerA.name : state.match.playerB.name;
+
+            text.textContent = winnerName + ' WIN!';
+            score.textContent = scoreA + ' - ' + scoreB;
+
+            overlay.classList.add('show');
+
+            // 粒子效果
+            launchLandscapeParticles();
+        }
+
+        /**
+         * 隐藏横屏胜利
+         */
+        function hideLandscapeVictory() {
+            const overlay = document.getElementById('landscapeVictoryOverlay');
+            overlay.classList.remove('show');
+        }
+
+        /**
+         * 横屏粒子效果
+         */
+        function launchLandscapeParticles() {
+            const container = document.getElementById('particleContainer');
+            container.innerHTML = '';
+
+            const colors = ['#00FF87', '#00D4FF', '#FFD700', '#FF6B35', '#FF3B5C', '#fff'];
+
+            for (let i = 0; i < 80; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.width = (Math.random() * 15 + 5) + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.animationDelay = (Math.random() * 2) + 's';
+                particle.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                container.appendChild(particle);
+            }
+
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        /**
+         * 横屏比分动画
+         */
+        function animateLandscapeScore(player) {
+            const elem = player === 'A'
+                ? document.getElementById('landscapeScoreA')
+                : document.getElementById('landscapeScoreB');
+
+            if (elem) {
+                elem.classList.remove('score-up', 'score-glow');
+                void elem.offsetWidth; // 触发重绘
+                elem.classList.add('score-up', 'score-glow');
+
+                setTimeout(() => {
+                    elem.classList.remove('score-up', 'score-glow');
+                }, 500);
+            }
+        }
+
+        /**
+         * 设置横屏手势
+         */
+        function setupLandscapeGestures() {
+            const zoneA = document.getElementById('gestureZoneA');
+            const zoneB = document.getElementById('gestureZoneB');
+
+            // 左区点击加分A
+            zoneA.addEventListener('click', (e) => {
+                if (!state.match.isComplete) {
+                    landscapeAddScore('A');
+                    createRipple(zoneA, e);
+                }
+            });
+
+            // 右区点击加分B
+            zoneB.addEventListener('click', (e) => {
+                if (!state.match.isComplete) {
+                    landscapeAddScore('B');
+                    createRipple(zoneB, e);
+                }
+            });
+
+            // 双击撤销
+            let lastTap = 0;
+            zoneA.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                if (now - lastTap < 300) {
+                    landscapeUndo();
+                    e.preventDefault();
+                }
+                lastTap = now;
+            });
+
+            zoneB.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                if (now - lastTap < 300) {
+                    landscapeUndo();
+                    e.preventDefault();
+                }
+                lastTap = now;
+            });
+
+            // 长按切换发球
+            zoneA.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                landscapeSwitchServer();
+            });
+
+            zoneB.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                landscapeSwitchServer();
+            });
+        }
+
+        /**
+         * 全屏状态变化监听
+         */
+        function setupFullscreenListener() {
+            document.addEventListener('fullscreenchange', () => {
+                isFullscreen = !!document.fullscreenElement;
+
+                const hint = document.getElementById('fullscreenHint');
+                if (hint) {
+                    hint.classList.toggle('hidden', isFullscreen);
+                }
+            });
+
+            document.addEventListener('webkitfullscreenchange', () => {
+                isFullscreen = !!document.webkitFullscreenElement;
+            });
+        }
+
+        /**
+         * 屏幕方向变化监听
+         */
+        function setupOrientationListener() {
+            window.matchMedia('(orientation: landscape)').addEventListener('change', (e) => {
+                if (e.matches) {
+                    detectLandscape();
+                } else {
+                    disableLandscapeMode();
+                }
+            });
+
+            window.addEventListener('resize', () => {
+                detectLandscape();
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             init();
             initPWA();
+
+            // 初始化横屏模式
+            setupOrientationListener();
+            setupFullscreenListener();
+            setupLandscapeGestures();
+
+            // 订阅状态变化以更新横屏UI
+            store.subscribe((state) => {
+                if (state.currentPage === 'scoringPage' && isLandscapeMode) {
+                    updateLandscapeUI();
+
+                    // 检查比赛结束
+                    if (state.match.isComplete && state.match.winner) {
+                        setTimeout(() => {
+                            showLandscapeVictory(
+                                state.match.winner,
+                                state.match.gamesWonA,
+                                state.match.gamesWonB
+                            );
+                        }, 300);
+                    } else {
+                        hideLandscapeVictory();
+                    }
+                }
+            });
         });
     </script>
 </body>
