@@ -1,0 +1,1868 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#00FF87">
+    <meta name="color-scheme" content="dark light">
+    <meta name="description" content="专业的羽毛球比赛计分工具，支持实时计分、规则判定、离线使用">
+
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Badminton Pro">
+    <meta name="application-name" content="Badminton Pro">
+    <meta name="msapplication-TileColor" content="#00FF87">
+    <meta name="msapplication-tap-highlight" content="no">
+
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="icons/icon-192.svg">
+    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.svg">
+    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.svg">
+
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="icons/icon-192.svg">
+    <link rel="shortcut icon" type="image/svg+xml" href="icons/icon-192.svg">
+
+    <title>Badminton Pro - 羽毛球比赛计分</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-green: #00FF87;
+            --primary-blue: #00D4FF;
+            --success: #00FF87;
+            --warning: #FF6B35;
+            --danger: #FF3B5C;
+
+            --dark-bg: #0A0A0F;
+            --dark-surface: #16161D;
+            --dark-card: #1E1E28;
+            --dark-border: rgba(255,255,255,0.1);
+
+            --light-bg: #F5F7FA;
+            --light-surface: #FFFFFF;
+            --light-card: #FFFFFF;
+            --light-border: rgba(0,0,0,0.1);
+
+            --text-primary-dark: #FFFFFF;
+            --text-secondary-dark: #A0A0A8;
+            --text-primary-light: #1A1A1F;
+            --text-secondary-light: #6B6B75;
+
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--dark-bg);
+            color: var(--text-primary-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background var(--transition-normal), color var(--transition-normal);
+        }
+
+        body.light-mode {
+            background: var(--light-bg);
+            color: var(--text-primary-light);
+        }
+
+        .app-container {
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .background-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-gradient {
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            top: -25%;
+            left: -25%;
+            background: radial-gradient(ellipse at 30% 20%, rgba(0, 255, 135, 0.15) 0%, transparent 50%),
+                        radial-gradient(ellipse at 70% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%);
+            animation: bgFloat 20s ease-in-out infinite;
+        }
+
+        @keyframes bgFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(2%, 2%) rotate(1deg); }
+            66% { transform: translate(-2%, 1%) rotate(-1deg); }
+        }
+
+        .light-mode .bg-gradient {
+            background: radial-gradient(ellipse at 30% 20%, rgba(0, 255, 135, 0.08) 0%, transparent 50%),
+                        radial-gradient(ellipse at 70% 80%, rgba(0, 212, 255, 0.06) 0%, transparent 50%);
+        }
+
+        .shuttlecock {
+            position: absolute;
+            opacity: 0.03;
+            animation: float 15s ease-in-out infinite;
+        }
+
+        .shuttlecock:nth-child(2) { top: 20%; left: 10%; animation-delay: -5s; }
+        .shuttlecock:nth-child(3) { top: 60%; left: 80%; animation-delay: -10s; }
+        .shuttlecock:nth-child(4) { top: 80%; left: 20%; animation-delay: -7s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(5deg); }
+        }
+
+        .page {
+            display: none;
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .page.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .glass {
+            background: rgba(30, 30, 40, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--dark-border);
+            border-radius: var(--radius-lg);
+        }
+
+        .light-mode .glass {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid var(--light-border);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px 32px;
+            font-family: var(--font);
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));
+            color: #000;
+            box-shadow: 0 4px 20px rgba(0, 255, 135, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 255, 135, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .btn-primary:disabled {
+            background: linear-gradient(135deg, #666, #555);
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn-secondary {
+            background: var(--dark-card);
+            color: var(--text-primary-dark);
+            border: 1px solid var(--primary-green);
+        }
+
+        .light-mode .btn-secondary {
+            background: var(--light-card);
+            color: var(--text-primary-light);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 255, 135, 0.1);
+        }
+
+        .btn-icon {
+            width: 48px;
+            height: 48px;
+            padding: 0;
+            border-radius: 50%;
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            color: var(--text-primary-dark);
+        }
+
+        .light-mode .btn-icon {
+            background: var(--light-card);
+            border: 1px solid var(--light-border);
+            color: var(--text-primary-light);
+        }
+
+        .btn-icon:hover {
+            background: rgba(0, 255, 135, 0.1);
+            border-color: var(--primary-green);
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 16px 20px;
+            font-family: var(--font);
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid transparent;
+            border-radius: var(--radius-md);
+            color: var(--text-primary-dark);
+            transition: all var(--transition-fast);
+        }
+
+        .light-mode .input-field {
+            background: rgba(0, 0, 0, 0.03);
+            color: var(--text-primary-light);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            background: rgba(0, 255, 135, 0.05);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-secondary-dark);
+        }
+
+        .light-mode .input-field::placeholder {
+            color: var(--text-secondary-light);
+        }
+
+        .toggle-switch {
+            display: flex;
+            background: var(--dark-card);
+            border-radius: 50px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .light-mode .toggle-switch {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .toggle-option {
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            color: var(--text-secondary-dark);
+        }
+
+        .light-mode .toggle-option {
+            color: var(--text-secondary-light);
+        }
+
+        .toggle-option.active {
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));
+            color: #000;
+            box-shadow: 0 2px 10px rgba(0, 255, 135, 0.3);
+        }
+
+        .radio-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .radio-card {
+            padding: 20px 16px;
+            background: var(--dark-card);
+            border: 2px solid transparent;
+            border-radius: var(--radius-md);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .light-mode .radio-card {
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        .radio-card:hover {
+            border-color: rgba(0, 255, 135, 0.3);
+        }
+
+        .radio-card.selected {
+            border-color: var(--primary-green);
+            background: rgba(0, 255, 135, 0.05);
+            box-shadow: 0 0 20px rgba(0, 255, 135, 0.2);
+        }
+
+        .radio-card-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary-dark);
+        }
+
+        .light-mode .radio-card-value {
+            color: var(--text-primary-light);
+        }
+
+        .radio-card.selected .radio-card-value {
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .radio-card-label {
+            font-size: 12px;
+            color: var(--text-secondary-dark);
+            margin-top: 4px;
+        }
+
+        .light-mode .radio-card-label {
+            color: var(--text-secondary-light);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        .icon-lg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .icon-xl {
+            width: 48px;
+            height: 48px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        @keyframes scoreIncrement {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 135, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(0, 255, 135, 0.6); }
+        }
+
+        @keyframes confetti {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 50px;
+            background: rgba(0, 255, 135, 0.1);
+            color: var(--primary-green);
+        }
+
+        .badge.warning {
+            background: rgba(255, 107, 53, 0.1);
+            color: var(--warning);
+        }
+
+        .badge.danger {
+            background: rgba(255, 59, 92, 0.1);
+            color: var(--danger);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 16px 24px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            transition: all var(--transition-normal);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: rgba(0, 255, 135, 0.9);
+            color: #000;
+        }
+
+        .toast.error {
+            background: rgba(255, 59, 92, 0.9);
+            color: #fff;
+        }
+
+        @media (max-width: 640px) {
+            .page {
+                padding: 12px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+
+            .btn-icon {
+                width: 56px !important;
+                height: 56px !important;
+            }
+
+            .btn-icon .icon {
+                width: 28px !important;
+                height: 28px !important;
+            }
+
+            .btn-icon .icon-lg {
+                width: 36px !important;
+                height: 36px !important;
+            }
+
+            .radio-cards {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+
+            .radio-card {
+                padding: 16px 8px;
+            }
+
+            .radio-card-value {
+                font-size: 20px;
+            }
+
+            .scoring-container {
+                flex-direction: column !important;
+                height: auto !important;
+                min-height: calc(100vh - 200px);
+                gap: 8px !important;
+            }
+
+            .scoring-container .player-side {
+                flex: none !important;
+                width: 100%;
+                padding: 16px !important;
+                min-height: 200px;
+            }
+
+            .scoring-container .score-display {
+                font-size: 64px !important;
+            }
+
+            .scoring-container .btn-primary {
+                width: 60px !important;
+                height: 60px !important;
+                font-size: 24px !important;
+            }
+
+            .scoring-container .btn-icon {
+                width: 44px !important;
+                height: 44px !important;
+            }
+
+            .scoring-container .vs-divider {
+                display: none !important;
+            }
+
+            .scoring-header {
+                flex-wrap: wrap;
+                gap: 8px;
+                justify-content: center;
+            }
+
+            .scoring-header .page-header {
+                flex-direction: row;
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .server-indicator {
+                position: static !important;
+                margin-bottom: 8px;
+            }
+
+            .player-content {
+                flex-direction: row !important;
+                gap: 24px;
+                width: 100%;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .player-info {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .player-score {
+                margin: 0 !important;
+            }
+
+            .player-controls {
+                flex-direction: row !important;
+                margin-top: 0 !important;
+            }
+
+            .games-won {
+                margin-bottom: 0 !important;
+                margin-right: 16px;
+            }
+
+            #deuceOverlay {
+                padding: 12px 16px;
+                margin-bottom: 12px;
+            }
+
+            #deuceOverlay div:first-child {
+                font-size: 18px;
+            }
+
+            #deuceOverlay div:last-child {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 640px) and (orientation: landscape) {
+            .scoring-container {
+                flex-direction: row !important;
+                min-height: calc(100vh - 120px);
+            }
+
+            .scoring-container .player-side {
+                flex: 1 !important;
+                min-height: auto;
+                padding: 12px !important;
+            }
+
+            .scoring-container .score-display {
+                font-size: 48px !important;
+            }
+
+            .scoring-container .btn-primary {
+                width: 52px !important;
+                height: 52px !important;
+                font-size: 20px !important;
+            }
+
+            .scoring-container .btn-icon {
+                width: 44px !important;
+                height: 44px !important;
+            }
+
+            .scoring-container .btn-icon .icon {
+                width: 22px !important;
+                height: 22px !important;
+            }
+
+            .scoring-header .btn-icon {
+                width: 52px !important;
+                height: 52px !important;
+            }
+
+            .scoring-header .btn-icon .icon {
+                width: 26px !important;
+                height: 26px !important;
+            }
+
+            .player-content {
+                flex-direction: column !important;
+            }
+
+            .player-score {
+                margin: 8px 0 !important;
+            }
+        }
+
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .scoring-container .score-display {
+                font-size: 72px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .page {
+                padding: 40px;
+            }
+
+            .app-container {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="background-effects">
+            <div class="bg-gradient"></div>
+            <svg class="shuttlecock" width="80" height="120" viewBox="0 0 80 120">
+                <path d="M40 0 L60 30 L55 35 L45 25 L40 0Z" fill="currentColor"/>
+                <ellipse cx="40" cy="70" rx="25" ry="40" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M15 70 Q40 50 65 70 Q40 90 15 70Z" fill="currentColor" opacity="0.3"/>
+            </svg>
+            <svg class="shuttlecock" width="60" height="90" viewBox="0 0 80 120">
+                <path d="M40 0 L60 30 L55 35 L45 25 L40 0Z" fill="currentColor"/>
+                <ellipse cx="40" cy="70" rx="25" ry="40" fill="none" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <svg class="shuttlecock" width="100" height="150" viewBox="0 0 80 120">
+                <path d="M40 0 L60 30 L55 35 L45 25 L40 0Z" fill="currentColor"/>
+                <ellipse cx="40" cy="70" rx="25" ry="40" fill="none" stroke="currentColor" stroke-width="2"/>
+            </svg>
+        </div>
+
+        <div class="theme-toggle">
+            <button class="btn btn-icon" id="themeToggle" aria-label="切换主题">
+                <svg class="icon" id="sunIcon" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="5"/>
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                </svg>
+                <svg class="icon" id="moonIcon" viewBox="0 0 24 24" style="display:none;">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+            </button>
+        </div>
+
+        <div id="welcomePage" class="page active">
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding: 40px 20px;">
+                <div style="margin-bottom: 40px; animation: bounce 2s ease-in-out infinite;">
+                    <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+                        <circle cx="60" cy="60" r="55" stroke="url(#grad1)" stroke-width="3" fill="none"/>
+                        <path d="M60 20 L85 55 L80 60 L70 50 L60 20Z" fill="url(#grad1)"/>
+                        <ellipse cx="60" cy="85" rx="30" ry="25" fill="url(#grad2)" opacity="0.3"/>
+                        <ellipse cx="60" cy="85" rx="30" ry="25" stroke="url(#grad1)" stroke-width="2" fill="none"/>
+                        <defs>
+                            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#00FF87"/>
+                                <stop offset="100%" stop-color="#00D4FF"/>
+                            </linearGradient>
+                            <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#00FF87"/>
+                                <stop offset="100%" stop-color="#00D4FF"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h1 style="font-size: 48px; font-weight: 800; margin-bottom: 16px; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    Badminton Pro
+                </h1>
+                <p style="font-size: 18px; color: var(--text-secondary-dark); margin-bottom: 48px; max-width: 400px;">
+                    专业的羽毛球比赛计分工具<br>实时追踪 · 智能规则 · 精美呈现
+                </p>
+                <button class="btn btn-primary" onclick="navigateTo('setupPage')" style="font-size: 18px; padding: 20px 48px;">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <polygon points="5 3 19 12 5 21 5 3"/>
+                    </svg>
+                    开始比赛
+                </button>
+            </div>
+        </div>
+
+        <div id="setupPage" class="page">
+            <div style="max-width: 600px; margin: 0 auto; width: 100%;">
+                <div class="page-header">
+                    <button class="btn btn-icon" onclick="navigateTo('welcomePage')" aria-label="返回">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <h1 class="page-title">比赛设置</h1>
+                    <div style="width: 48px;"></div>
+                </div>
+
+                <div class="glass" style="padding: 32px; margin-bottom: 24px; animation: fadeIn 0.5s ease-out;">
+                    <h2 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--text-secondary-dark);">选手信息</h2>
+
+                    <div class="input-group">
+                        <input type="text" class="input-field" id="playerAName" placeholder="选手 A 姓名" maxlength="20">
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: center; padding: 8px 0; margin-bottom: 8px;">
+                        <div style="flex: 1; height: 1px; background: var(--dark-border);"></div>
+                        <span style="padding: 8px 16px; font-size: 14px; color: var(--text-secondary-dark);">VS</span>
+                        <div style="flex: 1; height: 1px; background: var(--dark-border);"></div>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="text" class="input-field" id="playerBName" placeholder="选手 B 姓名" maxlength="20">
+                    </div>
+                </div>
+
+                <div class="glass" style="padding: 32px; margin-bottom: 24px; animation: fadeIn 0.5s ease-out 0.1s both;">
+                    <h2 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--text-secondary-dark);">比赛模式</h2>
+
+                    <div class="toggle-switch" style="width: 100%;">
+                        <div class="toggle-option active" data-value="single" onclick="setMode('single', this)" style="flex: 1;">单打</div>
+                        <div class="toggle-option" data-value="double" onclick="setMode('double', this)" style="flex: 1;">双打</div>
+                    </div>
+                </div>
+
+                <div class="glass" style="padding: 32px; margin-bottom: 24px; animation: fadeIn 0.5s ease-out 0.2s both;">
+                    <h2 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--text-secondary-dark);">比分制度</h2>
+
+                    <div class="radio-cards" id="scoringOptions">
+                        <div class="radio-card" data-value="11" onclick="selectScoring(11, this)">
+                            <div class="radio-card-value">11</div>
+                            <div class="radio-card-label">分制</div>
+                        </div>
+                        <div class="radio-card selected" data-value="21" onclick="selectScoring(21, this)">
+                            <div class="radio-card-value">21</div>
+                            <div class="radio-card-label">分制</div>
+                        </div>
+                        <div class="radio-card" data-value="15" onclick="selectScoring(15, this)">
+                            <div class="radio-card-value">15</div>
+                            <div class="radio-card-label">分制</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass" style="padding: 32px; margin-bottom: 24px; animation: fadeIn 0.5s ease-out 0.3s both;">
+                    <h2 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--text-secondary-dark);">比赛局数</h2>
+
+                    <div class="radio-cards" id="gamesOptions">
+                        <div class="radio-card" data-value="1" onclick="selectGames(1, this)">
+                            <div class="radio-card-value">1</div>
+                            <div class="radio-card-label">局定胜负</div>
+                        </div>
+                        <div class="radio-card selected" data-value="3" onclick="selectGames(3, this)">
+                            <div class="radio-card-value">3</div>
+                            <div class="radio-card-label">局两胜</div>
+                        </div>
+                        <div class="radio-card" data-value="5" onclick="selectGames(5, this)">
+                            <div class="radio-card-value">5</div>
+                            <div class="radio-card-label">局三胜</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass" style="padding: 32px; margin-bottom: 32px; animation: fadeIn 0.5s ease-out 0.4s both;">
+                    <h2 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--text-secondary-dark);">首发球权</h2>
+
+                    <div style="display: flex; gap: 16px;">
+                        <div class="radio-card selected" id="firstServerA" onclick="selectFirstServer('A', this)" style="flex: 1;">
+                            <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;" id="firstServerALabel">选手 A</div>
+                            <div class="radio-card-label">先发球</div>
+                        </div>
+                        <div class="radio-card" id="firstServerB" onclick="selectFirstServer('B', this)" style="flex: 1;">
+                            <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;" id="firstServerBLabel">选手 B</div>
+                            <div class="radio-card-label">先发球</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" id="startMatchBtn" onclick="startMatch()" disabled style="width: 100%; font-size: 18px; padding: 20px;">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                    开始比赛
+                </button>
+            </div>
+        </div>
+
+        <div id="scoringPage" class="page">
+            <div style="max-width: 1000px; margin: 0 auto; width: 100%; height: 100%; display: flex; flex-direction: column;">
+                <div class="scoring-header" style="padding: 12px 0; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+                    <button class="btn btn-icon" onclick="showExitConfirm()" aria-label="返回">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                        <span id="matchTimer" style="font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums;">00:00</span>
+                        <div style="display: flex; gap: 8px;">
+                            <span class="badge" id="currentGameBadge">第 1 局</span>
+                            <span class="badge" id="scoringBadge">21分制</span>
+                            <span class="badge" id="modeBadge">单打</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-icon" onclick="openSettings()" aria-label="退出比赛">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div id="sideChangeOverlay" class="glass" style="display: none; padding: 24px; margin-bottom: 16px; text-align: center; background: rgba(0, 212, 255, 0.15); border: 2px solid var(--primary-blue); animation: pulse 1s ease-in-out infinite;">
+                    <div style="font-size: 28px; font-weight: 800; color: var(--primary-blue);">换边时间!</div>
+                    <div style="font-size: 14px; color: var(--primary-blue); margin-top: 8px;">请交换场地</div>
+                    <button class="btn btn-primary" onclick="confirmSideChange()" style="margin-top: 16px;">确认换边</button>
+                </div>
+
+                <div id="deuceOverlay" class="glass" style="display: none; padding: 16px 24px; margin-bottom: 16px; text-align: center; background: rgba(255, 107, 53, 0.15); border: 2px solid var(--warning); animation: pulse 1.5s ease-in-out infinite;">
+                    <div style="font-size: 24px; font-weight: 800; color: var(--warning);">DEUCE / 加时赛</div>
+                    <div style="font-size: 14px; color: var(--warning); margin-top: 4px;">需领先 2 分才能获胜</div>
+                </div>
+
+                <div id="capOverlay" class="glass" style="display: none; padding: 16px 24px; margin-bottom: 16px; text-align: center; background: rgba(255, 59, 92, 0.15); border: 2px solid var(--danger); animation: pulse 1s ease-in-out infinite;">
+                    <div style="font-size: 24px; font-weight: 800; color: var(--danger);">30分封顶!</div>
+                    <div style="font-size: 14px; color: var(--danger); margin-top: 4px;">下一分决定胜负!</div>
+                </div>
+
+                <div class="scoring-container" style="flex: 1; display: flex; gap: 16px; align-items: stretch;">
+                    <div class="glass player-side" id="playerASide" style="flex: 1; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; animation: fadeIn 0.5s ease-out;">
+                        <div id="serverIndicatorA" class="server-indicator" style="position: absolute; top: 16px; right: 16px; display: none;">
+                            <div style="display: flex; align-items: center; gap: 4px; padding: 6px 12px; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); border-radius: 50px; font-size: 12px; font-weight: 600; color: #000;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                    <circle cx="12" cy="12" r="10"/>
+                                </svg>
+                                发球
+                            </div>
+                        </div>
+                        <div class="player-content">
+                            <div id="gamesWonA" class="games-won" style="display: flex; gap: 8px; margin-bottom: 16px;"></div>
+                            <div class="player-info">
+                                <div style="font-size: 14px; font-weight: 600; color: var(--text-secondary-dark); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;" id="playerALabel">选手 A</div>
+                                <div class="score-display player-score" id="scoreA" style="font-size: 96px; font-weight: 800; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; font-variant-numeric: tabular-nums;">0</div>
+                                <div class="player-controls" style="display: flex; gap: 16px; margin-top: 24px;">
+                                    <button class="btn btn-icon" onclick="decrementScore('A')" aria-label="减分">
+                                        <svg class="icon" viewBox="0 0 24 24">
+                                            <path d="M5 12h14"/>
+                                        </svg>
+                                    </button>
+                                    <button class="btn btn-primary" onclick="incrementScore('A')" aria-label="加分" style="width: 72px; height: 72px; border-radius: 50%; font-size: 32px; padding: 0;">
+                                        <svg class="icon-lg" viewBox="0 0 24 24">
+                                            <path d="M12 5v14M5 12h14"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="vs-divider" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 0 8px;">
+                        <div style="writing-mode: vertical-rl; text-orientation: mixed; font-size: 14px; color: var(--text-secondary-dark);">VS</div>
+                    </div>
+
+                    <div class="glass player-side" id="playerBSide" style="flex: 1; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; animation: fadeIn 0.5s ease-out;">
+                        <div id="serverIndicatorB" class="server-indicator" style="position: absolute; top: 16px; left: 16px; display: none;">
+                            <div style="display: flex; align-items: center; gap: 4px; padding: 6px 12px; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); border-radius: 50px; font-size: 12px; font-weight: 600; color: #000;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                    <circle cx="12" cy="12" r="10"/>
+                                </svg>
+                                发球
+                            </div>
+                        </div>
+                        <div class="player-content">
+                            <div id="gamesWonB" class="games-won" style="display: flex; gap: 8px; margin-bottom: 16px;"></div>
+                            <div class="player-info">
+                                <div style="font-size: 14px; font-weight: 600; color: var(--text-secondary-dark); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;" id="playerBLabel">选手 B</div>
+                                <div class="score-display player-score" id="scoreB" style="font-size: 96px; font-weight: 800; background: linear-gradient(135deg, var(--primary-blue), var(--primary-green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; font-variant-numeric: tabular-nums;">0</div>
+                                <div class="player-controls" style="display: flex; gap: 16px; margin-top: 24px;">
+                                    <button class="btn btn-icon" onclick="decrementScore('B')" aria-label="减分">
+                                        <svg class="icon" viewBox="0 0 24 24">
+                                            <path d="M5 12h14"/>
+                                        </svg>
+                                    </button>
+                                    <button class="btn btn-primary" onclick="incrementScore('B')" aria-label="加分" style="width: 72px; height: 72px; border-radius: 50%; font-size: 32px; padding: 0;">
+                                        <svg class="icon-lg" viewBox="0 0 24 24">
+                                            <path d="M12 5v14M5 12h14"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 16px;">
+                    <button class="btn btn-secondary" onclick="switchServer()" style="width: 100%;">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M17 1l4 4-4 4"/>
+                            <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                            <path d="M7 23l-4-4 4-4"/>
+                            <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                        </svg>
+                        切换发球权
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="endPage" class="page">
+            <div style="max-width: 600px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; padding: 40px 20px;">
+                <div id="confettiContainer" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;"></div>
+
+                <div style="margin-bottom: 32px; animation: bounce 1s ease-out;">
+                    <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+                        <path d="M60 10 L75 45 L110 45 L82 68 L92 105 L60 82 L28 105 L38 68 L10 45 L45 45 Z" fill="url(#trophyGrad)" stroke="url(#trophyGrad)" stroke-width="2"/>
+                        <defs>
+                            <linearGradient id="trophyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#FFD700"/>
+                                <stop offset="50%" stop-color="#FFA500"/>
+                                <stop offset="100%" stop-color="#FF6B35"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+
+                <div style="font-size: 18px; color: var(--text-secondary-dark); margin-bottom: 8px;">比赛结束</div>
+                <div id="winnerName" style="font-size: 36px; font-weight: 800; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 32px;">Winner</div>
+
+                <div class="glass" style="padding: 32px; margin-bottom: 32px; width: 100%; max-width: 400px;">
+                    <div style="font-size: 14px; color: var(--text-secondary-dark); margin-bottom: 16px;">最终比分</div>
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 32px;">
+                        <div style="text-align: center;">
+                            <div id="endPlayerA" style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">选手 A</div>
+                            <div id="endScoreA" style="font-size: 48px; font-weight: 800; color: var(--primary-green);">0</div>
+                        </div>
+                        <div style="font-size: 24px; color: var(--text-secondary-dark);">-</div>
+                        <div style="text-align: center;">
+                            <div id="endPlayerB" style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">选手 B</div>
+                            <div id="endScoreB" style="font-size: 48px; font-weight: 800; color: var(--primary-blue);">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="gamesRecord" style="width: 100%; max-width: 400px; margin-bottom: 32px;"></div>
+
+                <div style="display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 300px;">
+                    <button class="btn btn-primary" onclick="newMatch()">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M23 4v6h-6M1 20v-6h6"/>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        </svg>
+                        再来一局
+                    </button>
+                    <button class="btn btn-secondary" onclick="saveMatch()">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                            <polyline points="17 21 17 13 7 13 7 21"/>
+                            <polyline points="7 3 7 8 15 8"/>
+                        </svg>
+                        保存比赛
+                    </button>
+                    <button class="btn btn-secondary" onclick="shareMatch()">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <circle cx="18" cy="5" r="3"/>
+                            <circle cx="6" cy="12" r="3"/>
+                            <circle cx="18" cy="19" r="3"/>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                        </svg>
+                        分享比分
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportMatch()">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        导出数据
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="historyPage" class="page">
+            <div style="max-width: 800px; margin: 0 auto; width: 100%;">
+                <div class="page-header">
+                    <button class="btn btn-icon" onclick="navigateTo('scoringPage')" aria-label="返回">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <h1 class="page-title">历史记录</h1>
+                    <div style="width: 48px;"></div>
+                </div>
+
+                <div class="glass" style="padding: 16px; margin-bottom: 24px;">
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <svg class="icon" viewBox="0 0 24 24" style="color: var(--text-secondary-dark);">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input type="text" class="input-field" id="searchHistory" placeholder="搜索选手姓名..." style="margin: 0; padding: 12px 0; background: transparent; border: none;" oninput="filterHistory()">
+                    </div>
+                </div>
+
+                <div id="historyList"></div>
+
+                <div id="emptyHistory" class="glass" style="padding: 48px; text-align: center; display: none;">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="color: var(--text-secondary-dark); margin: 0 auto 16px;">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="12" y1="18" x2="12" y2="12"/>
+                        <line x1="9" y1="15" x2="15" y2="15"/>
+                    </svg>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">暂无比赛记录</div>
+                    <div style="font-size: 14px; color: var(--text-secondary-dark);">开始你的第一场比赛吧！</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="exitModal" class="glass" style="display: none; position: fixed; inset: 0; z-index: 100; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);">
+            <div style="background: var(--dark-card); border-radius: var(--radius-lg); padding: 32px; max-width: 400px; width: 90%; text-align: center;">
+                <div style="font-size: 24px; font-weight: 700; margin-bottom: 12px;">确认退出？</div>
+                <div style="color: var(--text-secondary-dark); margin-bottom: 24px;">比赛进行中，退出将丢失当前进度。</div>
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn btn-secondary" onclick="closeExitConfirm()" style="flex: 1;">取消</button>
+                    <button class="btn btn-primary" onclick="exitMatch()" style="flex: 1; background: var(--danger);">确认退出</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const state = {
+            darkMode: true,
+            currentPage: 'welcomePage',
+            match: {
+                playerA: { name: '选手 A', score: 0, games: [] },
+                playerB: { name: '选手 B', score: 0, games: [] },
+                settings: { mode: 'single', scoring: 21, gamesToWin: 3, firstServer: 'A' },
+                timer: { started: false, elapsed: 0, interval: null },
+                currentServer: 'A',
+                isDeuce: false,
+                gamesWonA: 0,
+                gamesWonB: 0,
+                isComplete: false,
+                winner: null,
+                history: []
+            }
+        };
+
+        const dom = {
+            playerAName: document.getElementById('playerAName'),
+            playerBName: document.getElementById('playerBName'),
+            startMatchBtn: document.getElementById('startMatchBtn'),
+            scoreA: document.getElementById('scoreA'),
+            scoreB: document.getElementById('scoreB'),
+            playerALabel: document.getElementById('playerALabel'),
+            playerBLabel: document.getElementById('playerBLabel'),
+            matchTimer: document.getElementById('matchTimer'),
+            currentGameBadge: document.getElementById('currentGameBadge'),
+            scoringBadge: document.getElementById('scoringBadge'),
+            modeBadge: document.getElementById('modeBadge'),
+            deuceOverlay: document.getElementById('deuceOverlay'),
+            capOverlay: document.getElementById('capOverlay'),
+            serverIndicatorA: document.getElementById('serverIndicatorA'),
+            serverIndicatorB: document.getElementById('serverIndicatorB'),
+            gamesWonA: document.getElementById('gamesWonA'),
+            gamesWonB: document.getElementById('gamesWonB'),
+            settingsModal: document.getElementById('settingsModal'),
+            winnerName: document.getElementById('winnerName'),
+            endPlayerA: document.getElementById('endPlayerA'),
+            endPlayerB: document.getElementById('endPlayerB'),
+            endScoreA: document.getElementById('endScoreA'),
+            endScoreB: document.getElementById('endScoreB'),
+            gamesRecord: document.getElementById('gamesRecord'),
+            historyList: document.getElementById('historyList'),
+            emptyHistory: document.getElementById('emptyHistory'),
+            confettiContainer: document.getElementById('confettiContainer'),
+            exitModal: document.getElementById('exitModal'),
+            toast: document.getElementById('toast'),
+            themeToggle: document.getElementById('themeToggle'),
+            sunIcon: document.getElementById('sunIcon'),
+            moonIcon: document.getElementById('moonIcon')
+        };
+
+        function init() {
+            loadFromStorage();
+            setupEventListeners();
+            updatePlayerLabels();
+            renderHistory();
+            applyTheme();
+        }
+
+        function loadFromStorage() {
+            const saved = localStorage.getItem('badmintonMatchState');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    state.darkMode = parsed.darkMode ?? true;
+                    state.match.history = parsed.history ?? [];
+                } catch (error) {
+                    console.warn('Failed to parse saved state:', error);
+                    localStorage.removeItem('badmintonMatchState');
+                }
+            }
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('badmintonMatchState', JSON.stringify({
+                darkMode: state.darkMode,
+                history: state.match.history
+            }));
+        }
+
+        function setupEventListeners() {
+            dom.playerAName.addEventListener('input', validateForm);
+            dom.playerBName.addEventListener('input', validateForm);
+            dom.playerAName.addEventListener('input', updatePlayerLabels);
+            dom.playerBName.addEventListener('input', updatePlayerLabels);
+            dom.themeToggle.addEventListener('click', toggleTheme);
+        }
+
+        function applyTheme() {
+            document.body.classList.toggle('light-mode', !state.darkMode);
+            dom.sunIcon.style.display = state.darkMode ? 'none' : 'block';
+            dom.moonIcon.style.display = state.darkMode ? 'block' : 'none';
+        }
+
+        function toggleTheme() {
+            state.darkMode = !state.darkMode;
+            applyTheme();
+            saveToStorage();
+        }
+
+        function navigateTo(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            state.currentPage = pageId;
+
+            if (pageId === 'historyPage') {
+                renderHistory();
+            }
+        }
+
+        function validateForm() {
+            const aValid = dom.playerAName.value.trim().length > 0;
+            const bValid = dom.playerBName.value.trim().length > 0;
+            dom.startMatchBtn.disabled = !(aValid && bValid);
+        }
+
+        function setMode(mode, el) {
+            state.match.settings.mode = mode;
+            document.querySelectorAll('.toggle-option').forEach(o => o.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function selectScoring(value, el) {
+            state.match.settings.scoring = value;
+            document.querySelectorAll('#scoringOptions .radio-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        function selectGames(value, el) {
+            state.match.settings.gamesToWin = value;
+            document.querySelectorAll('#gamesOptions .radio-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        function selectFirstServer(server, el) {
+            state.match.settings.firstServer = server;
+            document.getElementById('firstServerA').classList.toggle('selected', server === 'A');
+            document.getElementById('firstServerB').classList.toggle('selected', server === 'B');
+        }
+
+        function updatePlayerLabels() {
+            const aName = dom.playerAName.value.trim() || '选手 A';
+            const bName = dom.playerBName.value.trim() || '选手 B';
+
+            document.getElementById('firstServerALabel').textContent = aName;
+            document.getElementById('firstServerBLabel').textContent = bName;
+        }
+
+        function startMatch() {
+            state.match.playerA.name = dom.playerAName.value.trim() || '选手 A';
+            state.match.playerB.name = dom.playerBName.value.trim() || '选手 B';
+            state.match.playerA.score = 0;
+            state.match.playerB.score = 0;
+            state.match.playerA.games = [];
+            state.match.playerB.games = [];
+            state.match.gamesWonA = 0;
+            state.match.gamesWonB = 0;
+            state.match.currentServer = state.match.settings.firstServer;
+            state.match.isDeuce = false;
+            state.match.isComplete = false;
+            state.match.winner = null;
+            state.match.timer.elapsed = 0;
+
+            if (state.match.timer.interval) {
+                clearInterval(state.match.timer.interval);
+            }
+            state.match.timer.interval = null;
+            state.match.timer.started = false;
+
+            updateScoringUI();
+            navigateTo('scoringPage');
+        }
+
+        function updateScoringUI() {
+            dom.playerALabel.textContent = state.match.playerA.name;
+            dom.playerBLabel.textContent = state.match.playerB.name;
+            dom.scoreA.textContent = state.match.playerA.score;
+            dom.scoreB.textContent = state.match.playerB.score;
+            dom.matchTimer.textContent = formatTime(state.match.timer.elapsed);
+            dom.scoringBadge.textContent = state.match.settings.scoring + '分制';
+            dom.modeBadge.textContent = state.match.settings.mode === 'single' ? '单打' : '双打';
+
+            const currentGame = state.match.gamesWonA + state.match.gamesWonB + 1;
+            dom.currentGameBadge.textContent = '第 ' + currentGame + ' 局';
+
+            dom.serverIndicatorA.style.display = state.match.currentServer === 'A' ? 'block' : 'none';
+            dom.serverIndicatorB.style.display = state.match.currentServer === 'B' ? 'block' : 'none';
+
+            updateGamesWonDisplay();
+            updateDeuceState();
+        }
+
+        function updateGamesWonDisplay() {
+            const gamesToWin = state.match.settings.gamesToWin;
+            const gamesA = state.match.gamesWonA;
+            const gamesB = state.match.gamesWonB;
+
+            dom.gamesWonA.innerHTML = '';
+            dom.gamesWonB.innerHTML = '';
+
+            for (let i = 0; i < gamesToWin; i++) {
+                const dotA = document.createElement('div');
+                dotA.style.cssText = 'width: 12px; height: 12px; border-radius: 50%; background: ' + (i < gamesA ? 'var(--primary-green)' : 'rgba(255,255,255,0.2)') + '; transition: background 0.3s;';
+                dom.gamesWonA.appendChild(dotA);
+
+                const dotB = document.createElement('div');
+                dotB.style.cssText = 'width: 12px; height: 12px; border-radius: 50%; background: ' + (i < gamesB ? 'var(--primary-blue)' : 'rgba(255,255,255,0.2)') + '; transition: background 0.3s;';
+                dom.gamesWonB.appendChild(dotB);
+            }
+        }
+
+        function updateDeuceState() {
+            const scoring = state.match.settings.scoring;
+            const scoreA = state.match.playerA.score;
+            const scoreB = state.match.playerB.score;
+            const capLimit = scoring === 21 ? 30 : null;
+
+            state.match.isDeuce = scoreA >= scoring - 1 && scoreB >= scoring - 1 && scoreA === scoreB;
+            dom.deuceOverlay.style.display = state.match.isDeuce ? 'flex' : 'none';
+
+            state.match.isAtCap = capLimit && scoreA === capLimit - 1 && scoreB === capLimit - 1;
+            dom.capOverlay.style.display = state.match.isAtCap ? 'flex' : 'none';
+
+            if (state.match.isDeuce) {
+                dom.deuceOverlay.style.animation = 'pulse 1.5s ease-in-out infinite';
+            }
+        }
+
+        function incrementScore(player) {
+            if (state.match.isComplete) return;
+
+            if (!state.match.timer.started) {
+                startTimer();
+            }
+
+            if (player === 'A') {
+                state.match.playerA.score++;
+                animateScore(dom.scoreA);
+            } else {
+                state.match.playerB.score++;
+                animateScore(dom.scoreB);
+            }
+
+            state.match.currentServer = player;
+            updateScoringUI();
+            checkWinCondition();
+        }
+
+        function decrementScore(player) {
+            if (state.match.isComplete) return;
+
+            if (player === 'A' && state.match.playerA.score > 0) {
+                state.match.playerA.score--;
+                dom.scoreA.style.animation = 'shake 0.3s ease-out';
+                setTimeout(() => dom.scoreA.style.animation = '', 300);
+            } else if (player === 'B' && state.match.playerB.score > 0) {
+                state.match.playerB.score--;
+                dom.scoreB.style.animation = 'shake 0.3s ease-out';
+                setTimeout(() => dom.scoreB.style.animation = '', 300);
+            }
+
+            updateScoringUI();
+        }
+
+        function animateScore(element) {
+            element.style.animation = 'scoreIncrement 0.3s ease-out';
+            setTimeout(() => element.style.animation = '', 300);
+        }
+
+        function switchServer() {
+            if (state.match.isComplete) {
+                showToast('比赛已结束，无法切换发球方', 'success');
+                return;
+            }
+
+            state.match.currentServer = state.match.currentServer === 'A' ? 'B' : 'A';
+            updateScoringUI();
+            showToast('当前发球方已切换为 ' + (state.match.currentServer === 'A' ? state.match.playerA.name : state.match.playerB.name), 'success');
+        }
+
+        function checkWinCondition() {
+            const scoring = state.match.settings.scoring;
+            const scoreA = state.match.playerA.score;
+            const scoreB = state.match.playerB.score;
+            const gamesToWin = state.match.settings.gamesToWin;
+            const gamesA = state.match.gamesWonA;
+            const gamesB = state.match.gamesWonB;
+            const capLimit = scoring === 21 ? 30 : null;
+
+            let winner = null;
+
+            if (capLimit && scoreA === capLimit) {
+                winner = 'A';
+            } else if (capLimit && scoreB === capLimit) {
+                winner = 'B';
+            } else if (!state.match.isDeuce) {
+                if (scoreA >= scoring && scoreA - scoreB >= 2) {
+                    winner = 'A';
+                } else if (scoreB >= scoring && scoreB - scoreA >= 2) {
+                    winner = 'B';
+                }
+            } else {
+                if (scoreA - scoreB >= 2) {
+                    winner = 'A';
+                } else if (scoreB - scoreA >= 2) {
+                    winner = 'B';
+                }
+            }
+
+            if (winner) {
+                if (gamesA + gamesB > 0 || state.match.playerA.score > 0 || state.match.playerB.score > 0) {
+                    state.match.playerA.games.push(state.match.playerA.score);
+                    state.match.playerB.games.push(state.match.playerB.score);
+                }
+
+                if (winner === 'A') {
+                    state.match.gamesWonA++;
+                } else {
+                    state.match.gamesWonB++;
+                }
+
+                if (state.match.gamesWonA >= gamesToWin) {
+                    endMatch('A');
+                } else if (state.match.gamesWonB >= gamesToWin) {
+                    endMatch('B');
+                } else {
+                    startNewGame();
+                }
+            }
+        }
+
+        function startNewGame() {
+            state.match.playerA.score = 0;
+            state.match.playerB.score = 0;
+            state.match.isDeuce = false;
+            state.match.currentServer = state.match.settings.firstServer;
+
+            if (state.match.gamesWonA + state.match.gamesWonB > 0) {
+                state.match.currentServer = state.match.gamesWonA > state.match.gamesWonB ? 'B' : 'A';
+            }
+
+            updateScoringUI();
+            showToast('第 ' + (state.match.gamesWonA + state.match.gamesWonB + 1) + ' 局开始！', 'success');
+        }
+
+        function startTimer() {
+            state.match.timer.started = true;
+            state.match.timer.interval = setInterval(() => {
+                state.match.timer.elapsed++;
+                dom.matchTimer.textContent = formatTime(state.match.timer.elapsed);
+            }, 1000);
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+        }
+
+        function endMatch(winner) {
+            state.match.isComplete = true;
+            state.match.winner = winner;
+
+            if (state.match.timer.interval) {
+                clearInterval(state.match.timer.interval);
+            }
+
+            const winnerName = winner === 'A' ? state.match.playerA.name : state.match.playerB.name;
+            const finalScoreA = state.match.gamesWonA;
+            const finalScoreB = state.match.gamesWonB;
+
+            dom.winnerName.textContent = winnerName;
+            dom.endPlayerA.textContent = state.match.playerA.name;
+            dom.endPlayerB.textContent = state.match.playerB.name;
+            dom.endScoreA.textContent = finalScoreA;
+            dom.endScoreB.textContent = finalScoreB;
+
+            renderGamesRecord();
+            launchConfetti();
+
+            setTimeout(() => {
+                navigateTo('endPage');
+            }, 500);
+        }
+
+        function renderGamesRecord() {
+            dom.gamesRecord.innerHTML = '<div style="font-size: 14px; color: var(--text-secondary-dark); margin-bottom: 12px;">比赛详情</div>';
+
+            state.match.playerA.games.forEach((scoreA, i) => {
+                const scoreB = state.match.playerB.games[i];
+                const gameDiv = document.createElement('div');
+                gameDiv.className = 'glass';
+                gameDiv.style.cssText = 'padding: 12px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;';
+                gameDiv.innerHTML = `
+                    <span style="color: var(--text-secondary-dark);">第 ${i + 1} 局</span>
+                    <span style="font-weight: 600;">${state.match.playerA.name} ${scoreA}</span>
+                    <span style="color: var(--text-secondary-dark);">-</span>
+                    <span style="font-weight: 600;">${scoreB} ${state.match.playerB.name}</span>
+                `;
+                dom.gamesRecord.appendChild(gameDiv);
+            });
+        }
+
+        function launchConfetti() {
+            const colors = ['#00FF87', '#00D4FF', '#FFD700', '#FF6B35', '#FF3B5C'];
+            dom.confettiContainer.innerHTML = '';
+
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.cssText = `
+                    position: absolute;
+                    width: ${Math.random() * 10 + 5}px;
+                    height: ${Math.random() * 10 + 5}px;
+                    background: ${colors[Math.floor(Math.random() * colors.length)]};
+                    left: ${Math.random() * 100}%;
+                    top: -20px;
+                    border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
+                    animation: confetti ${Math.random() * 2 + 2}s linear forwards;
+                    animation-delay: ${Math.random() * 0.5}s;
+                `;
+                dom.confettiContainer.appendChild(confetti);
+            }
+
+            setTimeout(() => {
+                dom.confettiContainer.innerHTML = '';
+            }, 4000);
+        }
+
+        function newMatch() {
+            navigateTo('setupPage');
+            dom.playerAName.value = state.match.playerA.name;
+            dom.playerBName.value = state.match.playerB.name;
+            validateForm();
+            updatePlayerLabels();
+        }
+
+        function saveMatch() {
+            const matchRecord = {
+                id: Date.now(),
+                date: new Date().toLocaleString('zh-CN'),
+                playerA: state.match.playerA.name,
+                playerB: state.match.playerB.name,
+                gamesA: state.match.gamesWonA,
+                gamesB: state.match.gamesWonB,
+                gameScores: [...state.match.playerA.games.map((s, i) => ({ a: s, b: state.match.playerB.games[i] }))],
+                scoring: state.match.settings.scoring,
+                duration: state.match.timer.elapsed,
+                winner: state.match.winner === 'A' ? state.match.playerA.name : state.match.playerB.name
+            };
+
+            state.match.history.unshift(matchRecord);
+            saveToStorage();
+            showToast('比赛已保存！', 'success');
+        }
+
+        function shareMatch() {
+            const text = `${state.match.playerA.name} ${state.match.gamesWonA} - ${state.match.gamesWonB} ${state.match.playerB.name}`;
+            if (navigator.share) {
+                navigator.share({
+                    title: '羽毛球比赛结果',
+                    text: text
+                });
+            } else {
+                navigator.clipboard.writeText(text);
+                showToast('比分已复制到剪贴板！', 'success');
+            }
+        }
+
+        function exportMatch() {
+            const data = {
+                match: {
+                    playerA: state.match.playerA.name,
+                    playerB: state.match.playerB.name,
+                    games: state.match.playerA.games.map((s, i) => ({ a: s, b: state.match.playerB.games[i] })),
+                    finalScore: { a: state.match.gamesWonA, b: state.match.gamesWonB },
+                    scoring: state.match.settings.scoring,
+                    duration: formatTime(state.match.timer.elapsed),
+                    winner: state.match.winner === 'A' ? state.match.playerA.name : state.match.playerB.name
+                },
+                exportedAt: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `badminton-match-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('数据已导出！', 'success');
+        }
+
+        function renderHistory() {
+            const searchTerm = document.getElementById('searchHistory').value.toLowerCase();
+            const filtered = state.match.history.filter(m =>
+                m.playerA.toLowerCase().includes(searchTerm) ||
+                m.playerB.toLowerCase().includes(searchTerm) ||
+                m.date.includes(searchTerm)
+            );
+
+            if (filtered.length === 0) {
+                dom.historyList.innerHTML = '';
+                dom.emptyHistory.style.display = 'block';
+                return;
+            }
+
+            dom.emptyHistory.style.display = 'none';
+            dom.historyList.innerHTML = '';
+
+            filtered.forEach(match => {
+                const card = document.createElement('div');
+                card.className = 'glass';
+                card.style.cssText = 'padding: 20px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s;';
+                card.onmouseenter = () => card.style.borderColor = 'var(--primary-green)';
+                card.onmouseleave = () => card.style.borderColor = 'transparent';
+
+                const winnerBadge = match.winner === match.playerA
+                    ? '<span style="background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); color: #000; padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 600;">胜</span>'
+                    : '<span style="background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 600;">负</span>';
+
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <span style="font-size: 12px; color: var(--text-secondary-dark);">${match.date}</span>
+                        ${winnerBadge}
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 600;">${match.playerA}</div>
+                            <div style="font-size: 14px; color: var(--text-secondary-dark);">vs ${match.playerB}</div>
+                        </div>
+                        <div style="font-size: 24px; font-weight: 700;">
+                            <span style="color: var(--primary-green);">${match.gamesA}</span>
+                            <span style="color: var(--text-secondary-dark);"> - </span>
+                            <span style="color: var(--primary-blue);">${match.gamesB}</span>
+                        </div>
+                    </div>
+                `;
+
+                card.onclick = () => {
+                    if (confirm('删除这条记录？')) {
+                        const idx = state.match.history.findIndex(m => m.id === match.id);
+                        if (idx !== -1) {
+                            state.match.history.splice(idx, 1);
+                            saveToStorage();
+                            renderHistory();
+                            showToast('记录已删除', 'success');
+                        }
+                    }
+                };
+
+                dom.historyList.appendChild(card);
+            });
+        }
+
+        function filterHistory() {
+            renderHistory();
+        }
+
+        function showExitConfirm() {
+            dom.exitModal.style.display = 'flex';
+        }
+
+        function closeExitConfirm() {
+            dom.exitModal.style.display = 'none';
+        }
+
+        function exitMatch() {
+            if (state.match.timer.interval) {
+                clearInterval(state.match.timer.interval);
+            }
+            state.match.timer.interval = null;
+            closeExitConfirm();
+            navigateTo('welcomePage');
+        }
+
+        function openSettings() {
+            showExitConfirm();
+        }
+
+        function showToast(message, type = 'success') {
+            dom.toast.textContent = message;
+            dom.toast.className = 'toast ' + type + ' show';
+            setTimeout(() => {
+                dom.toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // PWA Service Worker Registration
+        let newWorker = null;
+
+        function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then((registration) => {
+                        console.log('SW registered:', registration.scope);
+
+                        registration.addEventListener('updatefound', () => {
+                            newWorker = registration.installing;
+                            console.log('New SW found');
+
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    showUpdateToast();
+                                }
+                            });
+                        });
+                    })
+                    .catch((error) => {
+                        console.error('SW registration failed:', error);
+                    });
+
+                // Check for controller (page loaded via SW)
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    window.location.reload();
+                });
+            }
+        }
+
+        function showUpdateToast() {
+            const updateToast = document.createElement('div');
+            updateToast.className = 'toast success show';
+            updateToast.style.cssText = 'position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);';
+            updateToast.innerHTML = `
+                <span>有新版本可用</span>
+                <button onclick="reloadApp()" style="margin-left: 12px; padding: 4px 12px; background: #000; color: #00FF87; border: none; border-radius: 4px; cursor: pointer;">刷新</button>
+            `;
+            document.body.appendChild(updateToast);
+        }
+
+        function reloadApp() {
+            newWorker?.postMessage({ type: 'SKIP_WAITING' });
+            window.location.reload();
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt = null;
+
+        function handleInstallPrompt() {
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                showInstallButton();
+            });
+        }
+
+        function showInstallButton() {
+            if (document.getElementById('installBtn')) return;
+
+            const installBtn = document.createElement('button');
+            installBtn.id = 'installBtn';
+            installBtn.className = 'btn btn-primary';
+            installBtn.style.cssText = 'position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 1000; padding: 12px 24px; font-size: 14px; box-shadow: 0 4px 20px rgba(0, 255, 135, 0.4);';
+            installBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                安装应用
+            `;
+            installBtn.onclick = installPWA;
+            document.body.appendChild(installBtn);
+        }
+
+        async function installPWA() {
+            if (!deferredPrompt) return;
+
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+
+            console.log('Install outcome:', outcome);
+            deferredPrompt = null;
+
+            const installBtn = document.getElementById('installBtn');
+            if (installBtn) installBtn.remove();
+        }
+
+        // Offline Indicator
+        function setupOfflineIndicator() {
+            const indicator = document.createElement('div');
+            indicator.id = 'offlineIndicator';
+            indicator.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                padding: 8px;
+                background: linear-gradient(135deg, #FF6B35, #FF3B5C);
+                color: white;
+                text-align: center;
+                font-size: 14px;
+                font-weight: 500;
+                z-index: 10000;
+                transform: translateY(-100%);
+                transition: transform 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            `;
+            indicator.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                    <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/>
+                    <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/>
+                    <path d="M10.71 5.05A16 16 0 0 1 22.58 9"/>
+                    <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
+                    <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+                    <line x1="12" y1="20" x2="12.01" y2="20"/>
+                </svg>
+                离线模式 - 数据已保存本地
+            `;
+            document.body.appendChild(indicator);
+
+            // Show/hide based on online status
+            function updateOnlineStatus() {
+                const offlineIndicator = document.getElementById('offlineIndicator');
+                if (!navigator.onLine) {
+                    offlineIndicator.style.transform = 'translateY(0)';
+                } else {
+                    offlineIndicator.style.transform = 'translateY(-100%)';
+                }
+            }
+
+            window.addEventListener('online', updateOnlineStatus);
+            window.addEventListener('offline', updateOnlineStatus);
+
+            // Check initial status
+            updateOnlineStatus();
+        }
+
+        // Enhanced init
+        function initPWA() {
+            registerServiceWorker();
+            handleInstallPrompt();
+            setupOfflineIndicator();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            init();
+            initPWA();
+        });
+    </script>
+</body>
+</html>
