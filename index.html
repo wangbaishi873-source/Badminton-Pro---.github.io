@@ -1138,7 +1138,7 @@
         .landscape-victory-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(0, 0, 0, 0.9);
+            background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.2) 0%, rgba(0, 0, 0, 0.95) 70%);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -1146,53 +1146,88 @@
             z-index: 100;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.5s;
+            transition: opacity 0.5s, background 0.5s;
         }
 
         .landscape-victory-overlay.show {
             opacity: 1;
             pointer-events: auto;
+            animation: victoryBackgroundPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes victoryBackgroundPulse {
+            0%, 100% { background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.2) 0%, rgba(0, 0, 0, 0.95) 70%); }
+            50% { background: radial-gradient(ellipse at center, rgba(255, 107, 53, 0.3) 0%, rgba(0, 0, 0, 0.95) 70%); }
         }
 
         .landscape-victory-trophy {
-            font-size: clamp(60px, 15vw, 150px);
-            animation: trophyBounce 1s ease-out;
+            font-size: clamp(80px, 20vw, 200px);
+            animation: trophyBounce 1.2s ease-out, trophyGlow 1.5s ease-in-out infinite 1.2s;
+            filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
         }
 
         @keyframes trophyBounce {
-            0% { transform: scale(0) rotate(-20deg); }
-            50% { transform: scale(1.2) rotate(10deg); }
-            70% { transform: scale(0.9) rotate(-5deg); }
+            0% { transform: scale(0) rotate(-30deg); opacity: 0; }
+            50% { transform: scale(1.3) rotate(15deg); opacity: 1; }
+            65% { transform: scale(0.85) rotate(-8deg); }
+            80% { transform: scale(1.05) rotate(4deg); }
             100% { transform: scale(1) rotate(0deg); }
         }
 
+        @keyframes trophyGlow {
+            0%, 100% { filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8)); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 60px rgba(255, 215, 0, 1)); transform: scale(1.05); }
+        }
+
         .landscape-victory-text {
-            font-size: clamp(24px, 6vw, 60px);
+            font-size: clamp(28px, 8vw, 72px);
             font-weight: 900;
-            background: linear-gradient(135deg, #FFD700, #FF6B35);
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 25%, #FF6B35 50%, #FFD700 75%, #FFA500 100%);
+            background-size: 200% 200%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-top: 20px;
-            animation: victoryTextGlow 1.5s ease-in-out infinite;
+            margin-top: 25px;
+            animation: victoryTextGlow 1.5s ease-in-out infinite, victoryTextShine 3s linear infinite;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            letter-spacing: 3px;
         }
 
         @keyframes victoryTextGlow {
-            0%, 100% { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5)); }
-            50% { filter: drop-shadow(0 0 40px rgba(255, 215, 0, 0.8)); }
+            0%, 100% { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6)); }
+            50% { filter: drop-shadow(0 0 50px rgba(255, 215, 0, 1)); }
+        }
+
+        @keyframes victoryTextShine {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
         }
 
         .landscape-victory-score {
-            font-size: clamp(40px, 10vw, 100px);
+            font-size: clamp(48px, 12vw, 120px);
             font-weight: 900;
             color: #fff;
-            margin-top: 10px;
+            margin-top: 15px;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+            animation: scoreReveal 0.8s ease-out 0.5s both;
+        }
+
+        @keyframes scoreReveal {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
         }
 
         .landscape-victory-actions {
             display: flex;
-            gap: 16px;
-            margin-top: 40px;
+            gap: 20px;
+            margin-top: 50px;
+            animation: actionsFadeIn 0.5s ease-out 1s both;
+        }
+
+        @keyframes actionsFadeIn {
+            0% { transform: translateY(30px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
         }
 
         /* 横屏手势区域 */
@@ -2318,6 +2353,10 @@
             renderGamesRecord();
             launchConfetti();
 
+            if (isLandscapeMode) {
+                showLandscapeVictory(winner, finalScoreA, finalScoreB);
+            }
+
             setTimeout(() => {
                 navigateTo('endPage');
             }, 500);
@@ -2956,8 +2995,20 @@
 
             overlay.classList.add('show');
 
+            // 触觉反馈
+            if (navigator.vibrate) {
+                navigator.vibrate([100, 50, 100, 50, 200]);
+            }
+
             // 粒子效果
             launchLandscapeParticles();
+
+            // 动态背景光效
+            const scoreArea = document.getElementById('landscapeScoreArea');
+            if (scoreArea) {
+                scoreArea.style.transition = 'background 0.5s ease';
+                scoreArea.style.background = 'radial-gradient(ellipse at center, rgba(255, 215, 0, 0.3) 0%, rgba(255, 107, 53, 0.2) 50%, rgba(0, 0, 0, 0.9) 100%)';
+            }
         }
 
         /**
@@ -2966,6 +3017,11 @@
         function hideLandscapeVictory() {
             const overlay = document.getElementById('landscapeVictoryOverlay');
             overlay.classList.remove('show');
+
+            const scoreArea = document.getElementById('landscapeScoreArea');
+            if (scoreArea) {
+                scoreArea.style.background = '';
+            }
         }
 
         /**
@@ -2975,23 +3031,31 @@
             const container = document.getElementById('particleContainer');
             container.innerHTML = '';
 
-            const colors = ['#00FF87', '#00D4FF', '#FFD700', '#FF6B35', '#FF3B5C', '#fff'];
+            const colors = ['#00FF87', '#00D4FF', '#FFD700', '#FF6B35', '#FF3B5C', '#fff', '#FF69B4', '#9370DB'];
 
-            for (let i = 0; i < 80; i++) {
+            for (let i = 0; i < 150; i++) {
                 const particle = document.createElement('div');
                 particle.className = 'particle';
                 particle.style.left = Math.random() * 100 + '%';
                 particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-                particle.style.width = (Math.random() * 15 + 5) + 'px';
+                particle.style.width = (Math.random() * 20 + 5) + 'px';
                 particle.style.height = particle.style.width;
-                particle.style.animationDelay = (Math.random() * 2) + 's';
-                particle.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                particle.style.animationDelay = (Math.random() * 3) + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 2) + 's';
+
+                if (Math.random() > 0.5) {
+                    particle.style.borderRadius = '50%';
+                } else {
+                    particle.style.borderRadius = '0';
+                    particle.style.transform = 'rotate(' + (Math.random() * 360) + 'deg)';
+                }
+
                 container.appendChild(particle);
             }
 
             setTimeout(() => {
                 container.innerHTML = '';
-            }, 5000);
+            }, 6000);
         }
 
         /**
