@@ -431,6 +431,16 @@
             100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
 
+        @keyframes gameOverSlideIn {
+            0% { transform: translateY(-50px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes gameOverSlideOut {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-50px); opacity: 0; }
+        }
+
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-20px); }
@@ -1120,6 +1130,71 @@
             50% { transform: translate(-50%, -50%) scale(1.05); }
         }
 
+        /* 横屏局结束横幅 */
+        .landscape-gameover-banner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 30px 60px;
+            background: linear-gradient(135deg, rgba(0, 255, 135, 0.9) 0%, rgba(0, 212, 255, 0.9) 100%);
+            border-radius: 20px;
+            text-align: center;
+            z-index: 30;
+            box-shadow: 0 0 60px rgba(0, 255, 135, 0.6);
+            animation: landscapeGameOverIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .landscape-gameover-banner.hidden {
+            display: none;
+        }
+
+        @keyframes landscapeGameOverIn {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            60% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        @keyframes landscapeGameOverOut {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+        }
+
+        .landscape-gameover-title {
+            font-size: clamp(24px, 5vw, 48px);
+            font-weight: 900;
+            color: #000;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .landscape-gameover-score {
+            font-size: clamp(36px, 8vw, 72px);
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            margin: 10px 0;
+        }
+
+        .landscape-gameover-winner {
+            font-size: clamp(16px, 3vw, 28px);
+            font-weight: 700;
+            color: #000;
+            margin-bottom: 10px;
+        }
+
+        .landscape-gameover-next {
+            font-size: clamp(12px, 2vw, 18px);
+            color: rgba(0, 0, 0, 0.7);
+            margin-top: 15px;
+            animation: nextGamePulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes nextGamePulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
         .landscape-deuce-title {
             font-size: clamp(28px, 6vw, 56px);
             font-weight: 900;
@@ -1547,6 +1622,14 @@
                     <div style="font-size: 14px; color: var(--danger); margin-top: 4px;">下一分决定胜负!</div>
                 </div>
 
+                <!-- 局结束提示 -->
+                <div id="gameOverOverlay" class="glass" style="display: none; padding: 32px; margin-bottom: 16px; text-align: center; background: linear-gradient(135deg, rgba(0, 255, 135, 0.2) 0%, rgba(0, 212, 255, 0.2) 100%); border: 2px solid var(--primary-green); animation: gameOverSlideIn 0.5s ease-out;">
+                    <div style="font-size: 32px; font-weight: 800; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px;" id="gameOverTitle">第 1 局结束</div>
+                    <div style="font-size: 20px; font-weight: 600; color: #fff; margin-bottom: 8px;" id="gameOverScore">21 - 19</div>
+                    <div style="font-size: 14px; color: var(--text-secondary-dark);" id="gameOverWinner">选手A 获胜</div>
+                    <div style="margin-top: 16px; font-size: 16px; color: var(--primary-green);">即将开始下一局...</div>
+                </div>
+
                 <div class="scoring-container" style="flex: 1; display: flex; gap: 16px; align-items: stretch;">
                     <div class="glass player-side" id="playerASide" style="flex: 1; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; animation: fadeIn 0.5s ease-out;">
                         <div id="serverIndicatorA" class="server-indicator" style="position: absolute; top: 16px; right: 16px; display: none;">
@@ -1563,12 +1646,12 @@
                                 <div style="font-size: 14px; font-weight: 600; color: var(--text-secondary-dark); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;" id="playerALabel">选手 A</div>
                                 <div class="score-display player-score" id="scoreA" style="font-size: 96px; font-weight: 800; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; font-variant-numeric: tabular-nums;">0</div>
                                 <div class="player-controls" style="display: flex; gap: 16px; margin-top: 24px;">
-                                    <button class="btn btn-icon" onclick="decrementScore('A')" aria-label="减分">
+                                    <button id="decrementBtnA" class="btn btn-icon" onclick="decrementScore('A')" aria-label="减分">
                                         <svg class="icon" viewBox="0 0 24 24">
                                             <path d="M5 12h14"/>
                                         </svg>
                                     </button>
-                                    <button class="btn btn-primary" onclick="incrementScore('A')" aria-label="加分" style="width: 72px; height: 72px; border-radius: 50%; font-size: 32px; padding: 0;">
+                                    <button id="incrementBtnA" class="btn btn-primary" onclick="incrementScore('A')" aria-label="加分" style="width: 72px; height: 72px; border-radius: 50%; font-size: 32px; padding: 0;">
                                         <svg class="icon-lg" viewBox="0 0 24 24">
                                             <path d="M12 5v14M5 12h14"/>
                                         </svg>
@@ -1597,12 +1680,12 @@
                                 <div style="font-size: 14px; font-weight: 600; color: var(--text-secondary-dark); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;" id="playerBLabel">选手 B</div>
                                 <div class="score-display player-score" id="scoreB" style="font-size: 96px; font-weight: 800; background: linear-gradient(135deg, var(--primary-blue), var(--primary-green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; font-variant-numeric: tabular-nums;">0</div>
                                 <div class="player-controls" style="display: flex; gap: 16px; margin-top: 24px;">
-                                    <button class="btn btn-icon" onclick="decrementScore('B')" aria-label="减分">
+                                    <button id="decrementBtnB" class="btn btn-icon" onclick="decrementScore('B')" aria-label="减分">
                                         <svg class="icon" viewBox="0 0 24 24">
                                             <path d="M5 12h14"/>
                                         </svg>
                                     </button>
-                                    <button class="btn btn-primary" onclick="incrementScore('B')" aria-label="加分" style="width: 72px; height: 72px; border-radius: 50%; font-size: 32px; padding: 0;">
+                                    <button id="incrementBtnB" class="btn btn-primary" onclick="incrementScore('B')" aria-label="加分" style="width: 72px; height: 72px; border-radius: 50%; font-size: 32px; padding: 0;">
                                         <svg class="icon-lg" viewBox="0 0 24 24">
                                             <path d="M12 5v14M5 12h14"/>
                                         </svg>
@@ -1683,6 +1766,14 @@
                     <div class="landscape-deuce-subtitle">加时赛 · 领先2分获胜</div>
                 </div>
 
+                <!-- 横屏局结束横幅 -->
+                <div class="landscape-gameover-banner hidden" id="landscapeGameOverBanner">
+                    <div class="landscape-gameover-title" id="landscapeGameOverTitle">第 1 局结束</div>
+                    <div class="landscape-gameover-score" id="landscapeGameOverScore">21 - 18</div>
+                    <div class="landscape-gameover-winner" id="landscapeGameOverWinner">选手 A 获胜</div>
+                    <div class="landscape-gameover-next">即将开始下一局...</div>
+                </div>
+
                 <!-- 全屏提示 -->
                 <div class="fullscreen-hint" id="fullscreenHint" onclick="requestFullscreen()">
                     点击进入全屏模式
@@ -1697,10 +1788,10 @@
                     </svg>
                     撤销
                 </button>
-                <button class="landscape-control-btn landscape-btn-add landscape-btn-add-a" onclick="landscapeAddScore('A')">
+                <button id="landscapeAddBtnA" class="landscape-control-btn landscape-btn-add landscape-btn-add-a" onclick="landscapeAddScore('A')">
                     +1 A
                 </button>
-                <button class="landscape-control-btn landscape-btn-add landscape-btn-add-b" onclick="landscapeAddScore('B')">
+                <button id="landscapeAddBtnB" class="landscape-control-btn landscape-btn-add landscape-btn-add-b" onclick="landscapeAddScore('B')">
                     +1 B
                 </button>
                 <button class="landscape-control-btn landscape-btn-secondary" onclick="landscapeSwitchServer()">
@@ -1852,6 +1943,44 @@
                 </div>
             </div>
         </div>
+
+        <!-- 换边选择弹窗 -->
+        <div id="sideSwitchModal" class="glass" style="display: none; position: fixed; inset: 0; z-index: 200; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); backdrop-filter: blur(15px);">
+            <div style="background: var(--dark-card); border-radius: var(--radius-lg); padding: 32px; max-width: 420px; width: 90%; text-align: center; animation: scaleIn 0.3s ease-out;">
+                <div style="font-size: 28px; font-weight: 700; margin-bottom: 8px; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">换边时间</div>
+                <div style="font-size: 14px; color: var(--text-secondary-dark); margin-bottom: 24px;">请选择换边方式</div>
+
+                <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                    <div id="sideSwitchPreview" style="display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 16px; font-weight: 600;">
+                        <span id="sideSwitchLeft" style="color: var(--primary-green);">选手 A</span>
+                        <span style="color: var(--text-secondary-dark);">VS</span>
+                        <span id="sideSwitchRight" style="color: var(--primary-blue);">选手 B</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <button class="btn btn-primary" onclick="confirmSideSwitch(false)" style="width: 100%;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+                            <path d="M7 16V4M7 4L3 8M7 4L11 8"/>
+                            <path d="M17 8v12m0 0l4-4m-4 4l-4-4"/>
+                        </svg>
+                        仅换边（保持位置）
+                    </button>
+                    <button class="btn btn-secondary" onclick="confirmSideSwitch(true)" style="width: 100%;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+                            <path d="M16 3h5v5M8 3H3v5"/>
+                            <path d="M21 3l-7.5 7.5M3 3l7.5 7.5"/>
+                            <path d="M3 21l7.5-7.5M21 21l-7.5-7.5"/>
+                            <path d="M16 21h5v-5"/>
+                        </svg>
+                        换边并互换位置
+                    </button>
+                    <button class="btn btn-secondary" onclick="skipSideSwitch()" style="width: 100%; background: rgba(255,255,255,0.05);">
+                        不换边，继续
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="toast" class="toast"></div>
@@ -1872,7 +2001,8 @@
                 gamesWonB: 0,
                 isComplete: false,
                 winner: null,
-                history: []
+                history: [],
+                swappedSides: false
             },
             ui: {
                 landscapeMode: false,
@@ -2131,6 +2261,7 @@
             state.match.isComplete = false;
             state.match.winner = null;
             state.match.timer.elapsed = 0;
+            state.match.swappedSides = false;
 
             if (state.match.timer.interval) {
                 clearInterval(state.match.timer.interval);
@@ -2143,10 +2274,34 @@
         }
 
         function updateScoringUI() {
-            dom.playerALabel.textContent = state.match.playerA.name;
-            dom.playerBLabel.textContent = state.match.playerB.name;
-            dom.scoreA.textContent = state.match.playerA.score;
-            dom.scoreB.textContent = state.match.playerB.score;
+            const swapped = state.match.swappedSides;
+
+            if (swapped) {
+                dom.playerALabel.textContent = state.match.playerB.name;
+                dom.playerBLabel.textContent = state.match.playerA.name;
+                dom.scoreA.textContent = state.match.playerB.score;
+                dom.scoreB.textContent = state.match.playerA.score;
+                dom.serverIndicatorA.style.display = state.match.currentServer === 'B' ? 'block' : 'none';
+                dom.serverIndicatorB.style.display = state.match.currentServer === 'A' ? 'block' : 'none';
+
+                document.getElementById('incrementBtnA').setAttribute('onclick', "incrementScore('B')");
+                document.getElementById('decrementBtnA').setAttribute('onclick', "decrementScore('B')");
+                document.getElementById('incrementBtnB').setAttribute('onclick', "incrementScore('A')");
+                document.getElementById('decrementBtnB').setAttribute('onclick', "decrementScore('A')");
+            } else {
+                dom.playerALabel.textContent = state.match.playerA.name;
+                dom.playerBLabel.textContent = state.match.playerB.name;
+                dom.scoreA.textContent = state.match.playerA.score;
+                dom.scoreB.textContent = state.match.playerB.score;
+                dom.serverIndicatorA.style.display = state.match.currentServer === 'A' ? 'block' : 'none';
+                dom.serverIndicatorB.style.display = state.match.currentServer === 'B' ? 'block' : 'none';
+
+                document.getElementById('incrementBtnA').setAttribute('onclick', "incrementScore('A')");
+                document.getElementById('decrementBtnA').setAttribute('onclick', "decrementScore('A')");
+                document.getElementById('incrementBtnB').setAttribute('onclick', "incrementScore('B')");
+                document.getElementById('decrementBtnB').setAttribute('onclick', "decrementScore('B')");
+            }
+
             dom.matchTimer.textContent = formatTime(state.match.timer.elapsed);
             dom.scoringBadge.textContent = state.match.settings.scoring + '分制';
             dom.modeBadge.textContent = state.match.settings.mode === 'single' ? '单打' : '双打';
@@ -2154,17 +2309,15 @@
             const currentGame = state.match.gamesWonA + state.match.gamesWonB + 1;
             dom.currentGameBadge.textContent = '第 ' + currentGame + ' 局';
 
-            dom.serverIndicatorA.style.display = state.match.currentServer === 'A' ? 'block' : 'none';
-            dom.serverIndicatorB.style.display = state.match.currentServer === 'B' ? 'block' : 'none';
-
             updateGamesWonDisplay();
             updateDeuceState();
         }
 
         function updateGamesWonDisplay() {
             const gamesToWin = state.match.settings.gamesToWin;
-            const gamesA = state.match.gamesWonA;
-            const gamesB = state.match.gamesWonB;
+            const swapped = state.match.swappedSides;
+            const gamesA = swapped ? state.match.gamesWonB : state.match.gamesWonA;
+            const gamesB = swapped ? state.match.gamesWonA : state.match.gamesWonB;
 
             dom.gamesWonA.innerHTML = '';
             dom.gamesWonB.innerHTML = '';
@@ -2258,6 +2411,7 @@
             const scoreA = state.match.playerA.score;
             const scoreB = state.match.playerB.score;
             const gamesToWin = state.match.settings.gamesToWin;
+            const minWins = Math.ceil(gamesToWin / 2);
             const gamesA = state.match.gamesWonA;
             const gamesB = state.match.gamesWonB;
             const capLimit = scoring === 21 ? 30 : null;
@@ -2288,18 +2442,32 @@
                     state.match.playerB.games.push(scoreB);
                 }
 
+                const currentGameNum = state.match.gamesWonA + state.match.gamesWonB;
+                const winnerName = winner === 'A' ? state.match.playerA.name : state.match.playerB.name;
+
                 if (winner === 'A') {
                     state.match.gamesWonA++;
                 } else {
                     state.match.gamesWonB++;
                 }
 
-                if (state.match.gamesWonA >= gamesToWin) {
+                if (state.match.gamesWonA >= minWins) {
                     endMatch('A');
-                } else if (state.match.gamesWonB >= gamesToWin) {
+                } else if (state.match.gamesWonB >= minWins) {
                     endMatch('B');
                 } else {
-                    startNewGame();
+                    if (isLandscapeMode) {
+                        showLandscapeGameOver(currentGameNum, scoreA, scoreB, winnerName);
+                    } else {
+                        showGameOver(currentGameNum, scoreA, scoreB, winnerName);
+                    }
+                    setTimeout(() => {
+                        hideGameOver();
+                        hideLandscapeGameOver();
+                        showSideSwitchModal(() => {
+                            startNewGame();
+                        });
+                    }, 3000);
                 }
             }
         }
@@ -2556,6 +2724,54 @@
             showExitConfirm();
         }
 
+        let pendingSideSwitchCallback = null;
+
+        function showSideSwitchModal(callback) {
+            pendingSideSwitchCallback = callback;
+
+            const leftEl = document.getElementById('sideSwitchLeft');
+            const rightEl = document.getElementById('sideSwitchRight');
+
+            if (state.match.swappedSides) {
+                leftEl.textContent = state.match.playerB.name;
+                leftEl.style.color = 'var(--primary-blue)';
+                rightEl.textContent = state.match.playerA.name;
+                rightEl.style.color = 'var(--primary-green)';
+            } else {
+                leftEl.textContent = state.match.playerA.name;
+                leftEl.style.color = 'var(--primary-green)';
+                rightEl.textContent = state.match.playerB.name;
+                rightEl.style.color = 'var(--primary-blue)';
+            }
+
+            const modal = document.getElementById('sideSwitchModal');
+            modal.style.display = 'flex';
+        }
+
+        function confirmSideSwitch(swapPositions) {
+            const modal = document.getElementById('sideSwitchModal');
+            modal.style.display = 'none';
+
+            if (swapPositions) {
+                state.match.swappedSides = !state.match.swappedSides;
+            }
+
+            if (pendingSideSwitchCallback) {
+                pendingSideSwitchCallback();
+                pendingSideSwitchCallback = null;
+            }
+        }
+
+        function skipSideSwitch() {
+            const modal = document.getElementById('sideSwitchModal');
+            modal.style.display = 'none';
+
+            if (pendingSideSwitchCallback) {
+                pendingSideSwitchCallback();
+                pendingSideSwitchCallback = null;
+            }
+        }
+
         function showToast(message, type = 'success') {
             dom.toast.textContent = message;
             dom.toast.className = 'toast ' + type + ' show';
@@ -2768,12 +2984,25 @@
          */
         function updateLandscapeUI() {
             const s = state;
+            const swapped = s.match.swappedSides;
 
-            // 更新比分
-            document.getElementById('landscapeScoreA').textContent = s.match.playerA.score;
-            document.getElementById('landscapeScoreB').textContent = s.match.playerB.score;
-            document.getElementById('landscapeNameA').textContent = s.match.playerA.name;
-            document.getElementById('landscapeNameB').textContent = s.match.playerB.name;
+            if (swapped) {
+                document.getElementById('landscapeScoreA').textContent = s.match.playerB.score;
+                document.getElementById('landscapeScoreB').textContent = s.match.playerA.score;
+                document.getElementById('landscapeNameA').textContent = s.match.playerB.name;
+                document.getElementById('landscapeNameB').textContent = s.match.playerA.name;
+
+                document.getElementById('landscapeAddBtnA').setAttribute('onclick', "landscapeAddScore('B')");
+                document.getElementById('landscapeAddBtnB').setAttribute('onclick', "landscapeAddScore('A')");
+            } else {
+                document.getElementById('landscapeScoreA').textContent = s.match.playerA.score;
+                document.getElementById('landscapeScoreB').textContent = s.match.playerB.score;
+                document.getElementById('landscapeNameA').textContent = s.match.playerA.name;
+                document.getElementById('landscapeNameB').textContent = s.match.playerB.name;
+
+                document.getElementById('landscapeAddBtnA').setAttribute('onclick', "landscapeAddScore('A')");
+                document.getElementById('landscapeAddBtnB').setAttribute('onclick', "landscapeAddScore('B')");
+            }
 
             // 更新局数
             const currentGame = s.match.gamesWonA + s.match.gamesWonB + 1;
@@ -2784,7 +3013,7 @@
             updateLandscapeGamesWon(s);
 
             // 更新发球方
-            updateLandscapeServer(s);
+            updateLandscapeServer(s, swapped);
 
             // 更新计时器
             document.getElementById('landscapeTimer').textContent = formatTime(s.match.timer.elapsed);
@@ -2802,7 +3031,6 @@
                 scoreArea.classList.remove('deuce-state');
                 deuceBanner.classList.add('hidden');
 
-                // 检查赛点
                 const vm = window.voiceManager;
                 const isMP = vm && vm.isMatchPoint(s.match.playerA.score, s.match.playerB.score);
                 if (isMP) {
@@ -2818,8 +3046,9 @@
          */
         function updateLandscapeGamesWon(s) {
             const gamesToWin = s.settings.gamesToWin;
-            const gamesA = s.match.gamesWonA;
-            const gamesB = s.match.gamesWonB;
+            const swapped = s.match.swappedSides;
+            const gamesA = swapped ? s.match.gamesWonB : s.match.gamesWonA;
+            const gamesB = swapped ? s.match.gamesWonA : s.match.gamesWonB;
 
             const containerA = document.getElementById('landscapeGamesA');
             const containerB = document.getElementById('landscapeGamesB');
@@ -2841,12 +3070,17 @@
         /**
          * 更新横屏发球方
          */
-        function updateLandscapeServer(s) {
+        function updateLandscapeServer(s, swapped) {
             const sideA = document.getElementById('landscapeSideA');
             const sideB = document.getElementById('landscapeSideB');
 
-            sideA.classList.toggle('serving', s.match.currentServer === 'A');
-            sideB.classList.toggle('serving', s.match.currentServer === 'B');
+            if (swapped) {
+                sideA.classList.toggle('serving', s.match.currentServer === 'B');
+                sideB.classList.toggle('serving', s.match.currentServer === 'A');
+            } else {
+                sideA.classList.toggle('serving', s.match.currentServer === 'A');
+                sideB.classList.toggle('serving', s.match.currentServer === 'B');
+            }
         }
 
         /**
@@ -2860,9 +3094,10 @@
                 navigator.vibrate(30);
             }
 
-            // 涟漪动画
-            const zone = player === 'A' ? 'gestureZoneA' : 'gestureZoneB';
-            createRipple(document.getElementById(zone));
+            // 涟漪动画 - 根据点击的是哪个按钮
+            const isLeftButton = player === 'A' && !state.match.swappedSides || player === 'B' && state.match.swappedSides;
+            const rippleZone = isLeftButton ? 'gestureZoneA' : 'gestureZoneB';
+            createRipple(document.getElementById(rippleZone));
 
             // 更新UI
             setTimeout(updateLandscapeUI, 50);
@@ -3021,6 +3256,84 @@
             const scoreArea = document.getElementById('landscapeScoreArea');
             if (scoreArea) {
                 scoreArea.style.background = '';
+            }
+        }
+
+        /**
+         * 显示局结束提示（竖屏）
+         */
+        function showGameOver(gameNum, scoreA, scoreB, winner) {
+            const overlay = document.getElementById('gameOverOverlay');
+            const title = document.getElementById('gameOverTitle');
+            const score = document.getElementById('gameOverScore');
+            const winnerText = document.getElementById('gameOverWinner');
+
+            title.textContent = '第 ' + gameNum + ' 局结束';
+            score.textContent = scoreA + ' - ' + scoreB;
+            winnerText.textContent = winner + ' 获胜';
+
+            overlay.style.display = 'block';
+            overlay.style.animation = 'gameOverSlideIn 0.5s ease-out';
+
+            if (navigator.vibrate) {
+                navigator.vibrate([50, 30, 100]);
+            }
+
+            setTimeout(() => {
+                hideGameOver();
+            }, 3000);
+        }
+
+        /**
+         * 隐藏局结束提示（竖屏）
+         */
+        function hideGameOver() {
+            const overlay = document.getElementById('gameOverOverlay');
+            if (overlay && overlay.style.display !== 'none') {
+                overlay.style.animation = 'gameOverSlideOut 0.4s ease-out forwards';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    overlay.style.animation = '';
+                }, 400);
+            }
+        }
+
+        /**
+         * 显示横屏局结束横幅
+         */
+        function showLandscapeGameOver(gameNum, scoreA, scoreB, winner) {
+            const banner = document.getElementById('landscapeGameOverBanner');
+            const title = document.getElementById('landscapeGameOverTitle');
+            const score = document.getElementById('landscapeGameOverScore');
+            const winnerText = document.getElementById('landscapeGameOverWinner');
+
+            title.textContent = '第 ' + gameNum + ' 局结束';
+            score.textContent = scoreA + ' - ' + scoreB;
+            winnerText.textContent = winner + ' 获胜';
+
+            banner.classList.remove('hidden');
+            banner.style.animation = 'landscapeGameOverIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+
+            if (navigator.vibrate) {
+                navigator.vibrate([50, 30, 100]);
+            }
+
+            setTimeout(() => {
+                hideLandscapeGameOver();
+            }, 3000);
+        }
+
+        /**
+         * 隐藏横屏局结束横幅
+         */
+        function hideLandscapeGameOver() {
+            const banner = document.getElementById('landscapeGameOverBanner');
+            if (banner && !banner.classList.contains('hidden')) {
+                banner.style.animation = 'landscapeGameOverOut 0.4s ease-out forwards';
+                setTimeout(() => {
+                    banner.classList.add('hidden');
+                    banner.style.animation = '';
+                }, 400);
             }
         }
 
