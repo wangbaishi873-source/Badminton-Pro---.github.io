@@ -1646,12 +1646,12 @@
                                 <div style="font-size: 14px; font-weight: 600; color: var(--text-secondary-dark); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;" id="playerALabel">选手 A</div>
                                 <div class="score-display player-score" id="scoreA" style="font-size: 96px; font-weight: 800; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; font-variant-numeric: tabular-nums;">0</div>
                                 <div class="player-controls" style="display: flex; gap: 16px; margin-top: 24px;">
-                                    <button id="decrementBtnA" class="btn btn-icon" onclick="decrementScore('A')" aria-label="减分">
+                                    <button id="decrementBtnA" class="btn btn-icon" aria-label="减分">
                                         <svg class="icon" viewBox="0 0 24 24">
                                             <path d="M5 12h14"/>
                                         </svg>
                                     </button>
-                                    <button id="incrementBtnA" class="btn btn-primary" onclick="incrementScore('A')" aria-label="加分" style="width: 72px; height: 72px; border-radius: 50%; font-size: 32px; padding: 0;">
+                                    <button id="incrementBtnA" class="btn btn-primary" aria-label="加分" style="width: 72px; height: 72px; border-radius: 50%; font-size: 32px; padding: 0;">
                                         <svg class="icon-lg" viewBox="0 0 24 24">
                                             <path d="M12 5v14M5 12h14"/>
                                         </svg>
@@ -1680,12 +1680,12 @@
                                 <div style="font-size: 14px; font-weight: 600; color: var(--text-secondary-dark); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;" id="playerBLabel">选手 B</div>
                                 <div class="score-display player-score" id="scoreB" style="font-size: 96px; font-weight: 800; background: linear-gradient(135deg, var(--primary-blue), var(--primary-green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; font-variant-numeric: tabular-nums;">0</div>
                                 <div class="player-controls" style="display: flex; gap: 16px; margin-top: 24px;">
-                                    <button id="decrementBtnB" class="btn btn-icon" onclick="decrementScore('B')" aria-label="减分">
+                                    <button id="decrementBtnB" class="btn btn-icon" aria-label="减分">
                                         <svg class="icon" viewBox="0 0 24 24">
                                             <path d="M5 12h14"/>
                                         </svg>
                                     </button>
-                                    <button id="incrementBtnB" class="btn btn-primary" onclick="incrementScore('B')" aria-label="加分" style="width: 72px; height: 72px; border-radius: 50%; font-size: 32px; padding: 0;">
+                                    <button id="incrementBtnB" class="btn btn-primary" aria-label="加分" style="width: 72px; height: 72px; border-radius: 50%; font-size: 32px; padding: 0;">
                                         <svg class="icon-lg" viewBox="0 0 24 24">
                                             <path d="M12 5v14M5 12h14"/>
                                         </svg>
@@ -1788,10 +1788,10 @@
                     </svg>
                     撤销
                 </button>
-                <button id="landscapeAddBtnA" class="landscape-control-btn landscape-btn-add landscape-btn-add-a" onclick="landscapeAddScore('A')">
+                <button id="landscapeAddBtnA" class="landscape-control-btn landscape-btn-add landscape-btn-add-a">
                     +1 A
                 </button>
-                <button id="landscapeAddBtnB" class="landscape-control-btn landscape-btn-add landscape-btn-add-b" onclick="landscapeAddScore('B')">
+                <button id="landscapeAddBtnB" class="landscape-control-btn landscape-btn-add landscape-btn-add-b">
                     +1 B
                 </button>
                 <button class="landscape-control-btn landscape-btn-secondary" onclick="landscapeSwitchServer()">
@@ -1945,7 +1945,7 @@
         </div>
 
         <!-- 换边选择弹窗 -->
-        <div id="sideSwitchModal" class="glass" style="display: none; position: fixed; inset: 0; z-index: 200; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); backdrop-filter: blur(15px);">
+        <div id="sideSwitchModal" class="glass" style="display: none; position: fixed; inset: 0; z-index: 10001; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); backdrop-filter: blur(15px);">
             <div style="background: var(--dark-card); border-radius: var(--radius-lg); padding: 32px; max-width: 420px; width: 90%; text-align: center; animation: scaleIn 0.3s ease-out;">
                 <div style="font-size: 28px; font-weight: 700; margin-bottom: 8px; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">换边时间</div>
                 <div style="font-size: 14px; color: var(--text-secondary-dark); margin-bottom: 24px;">请选择换边方式</div>
@@ -2001,14 +2001,28 @@
                 gamesWonB: 0,
                 isComplete: false,
                 winner: null,
-                history: [],
-                swappedSides: false
+                history: []
             },
             ui: {
                 landscapeMode: false,
-                fullscreen: false
+                fullscreen: false,
+                sideChangePending: false,
+                uiState: { left: 'A', right: 'B' }
             }
         };
+
+        // ========== UI状态映射辅助函数 ==========
+        function getLeftPlayer() { return state.ui.uiState.left; }
+        function getRightPlayer() { return state.ui.uiState.right; }
+        function getPlayerName(player) { return player === 'A' ? state.match.playerA.name : state.match.playerB.name; }
+        function getPlayerScore(player) { return player === 'A' ? state.match.playerA.score : state.match.playerB.score; }
+        function getGamesWon(player) { return player === 'A' ? state.match.gamesWonA : state.match.gamesWonB; }
+        function isServer(player) { return state.match.currentServer === player; }
+        function swapSides() {
+            const temp = state.ui.uiState.left;
+            state.ui.uiState.left = state.ui.uiState.right;
+            state.ui.uiState.right = temp;
+        }
 
         const actionTypes = {
             INCREMENT_SCORE: 'INCREMENT_SCORE',
@@ -2248,6 +2262,10 @@
         }
 
         function startMatch() {
+            // 清除所有overlay
+            clearAllOverlays();
+
+            // 重置所有比赛状态
             state.match.playerA.name = dom.playerAName.value.trim() || '选手 A';
             state.match.playerB.name = dom.playerBName.value.trim() || '选手 B';
             state.match.playerA.score = 0;
@@ -2258,10 +2276,12 @@
             state.match.gamesWonB = 0;
             state.match.currentServer = state.match.settings.firstServer;
             state.match.isDeuce = false;
+            state.match.isAtCap = false;
             state.match.isComplete = false;
             state.match.winner = null;
             state.match.timer.elapsed = 0;
-            state.match.swappedSides = false;
+            state.ui.uiState = { left: 'A', right: 'B' };
+            state.ui.sideChangePending = false;
 
             if (state.match.timer.interval) {
                 clearInterval(state.match.timer.interval);
@@ -2269,38 +2289,33 @@
             state.match.timer.interval = null;
             state.match.timer.started = false;
 
+            // 更新UI
             updateScoringUI();
+            updateLandscapeUI();
             navigateTo('scoringPage');
         }
 
         function updateScoringUI() {
-            const swapped = state.match.swappedSides;
+            const leftPlayer = getLeftPlayer();
+            const rightPlayer = getRightPlayer();
 
-            if (swapped) {
-                dom.playerALabel.textContent = state.match.playerB.name;
-                dom.playerBLabel.textContent = state.match.playerA.name;
-                dom.scoreA.textContent = state.match.playerB.score;
-                dom.scoreB.textContent = state.match.playerA.score;
-                dom.serverIndicatorA.style.display = state.match.currentServer === 'B' ? 'block' : 'none';
-                dom.serverIndicatorB.style.display = state.match.currentServer === 'A' ? 'block' : 'none';
+            dom.playerALabel.textContent = getPlayerName(leftPlayer);
+            dom.playerBLabel.textContent = getPlayerName(rightPlayer);
+            dom.scoreA.textContent = getPlayerScore(leftPlayer);
+            dom.scoreB.textContent = getPlayerScore(rightPlayer);
 
-                document.getElementById('incrementBtnA').setAttribute('onclick', "incrementScore('B')");
-                document.getElementById('decrementBtnA').setAttribute('onclick', "decrementScore('B')");
-                document.getElementById('incrementBtnB').setAttribute('onclick', "incrementScore('A')");
-                document.getElementById('decrementBtnB').setAttribute('onclick', "decrementScore('A')");
-            } else {
-                dom.playerALabel.textContent = state.match.playerA.name;
-                dom.playerBLabel.textContent = state.match.playerB.name;
-                dom.scoreA.textContent = state.match.playerA.score;
-                dom.scoreB.textContent = state.match.playerB.score;
-                dom.serverIndicatorA.style.display = state.match.currentServer === 'A' ? 'block' : 'none';
-                dom.serverIndicatorB.style.display = state.match.currentServer === 'B' ? 'block' : 'none';
+            dom.serverIndicatorA.style.display = isServer(leftPlayer) ? 'block' : 'none';
+            dom.serverIndicatorB.style.display = isServer(rightPlayer) ? 'block' : 'none';
 
-                document.getElementById('incrementBtnA').setAttribute('onclick', "incrementScore('A')");
-                document.getElementById('decrementBtnA').setAttribute('onclick', "decrementScore('A')");
-                document.getElementById('incrementBtnB').setAttribute('onclick', "incrementScore('B')");
-                document.getElementById('decrementBtnB').setAttribute('onclick', "decrementScore('B')");
-            }
+            // 更新竖屏按钮点击处理
+            const incrementBtnA = document.getElementById('incrementBtnA');
+            const decrementBtnA = document.getElementById('decrementBtnA');
+            const incrementBtnB = document.getElementById('incrementBtnB');
+            const decrementBtnB = document.getElementById('decrementBtnB');
+            incrementBtnA.onclick = () => incrementScore(leftPlayer);
+            decrementBtnA.onclick = () => decrementScore(leftPlayer);
+            incrementBtnB.onclick = () => incrementScore(rightPlayer);
+            decrementBtnB.onclick = () => decrementScore(rightPlayer);
 
             dom.matchTimer.textContent = formatTime(state.match.timer.elapsed);
             dom.scoringBadge.textContent = state.match.settings.scoring + '分制';
@@ -2315,20 +2330,21 @@
 
         function updateGamesWonDisplay() {
             const gamesToWin = state.match.settings.gamesToWin;
-            const swapped = state.match.swappedSides;
-            const gamesA = swapped ? state.match.gamesWonB : state.match.gamesWonA;
-            const gamesB = swapped ? state.match.gamesWonA : state.match.gamesWonB;
+            const leftPlayer = getLeftPlayer();
+            const rightPlayer = getRightPlayer();
+            const leftGames = getGamesWon(leftPlayer);
+            const rightGames = getGamesWon(rightPlayer);
 
             dom.gamesWonA.innerHTML = '';
             dom.gamesWonB.innerHTML = '';
 
             for (let i = 0; i < gamesToWin; i++) {
                 const dotA = document.createElement('div');
-                dotA.style.cssText = 'width: 12px; height: 12px; border-radius: 50%; background: ' + (i < gamesA ? 'var(--primary-green)' : 'rgba(255,255,255,0.2)') + '; transition: background 0.3s;';
+                dotA.style.cssText = 'width: 12px; height: 12px; border-radius: 50%; background: ' + (i < leftGames ? 'var(--primary-green)' : 'rgba(255,255,255,0.2)') + '; transition: background 0.3s;';
                 dom.gamesWonA.appendChild(dotA);
 
                 const dotB = document.createElement('div');
-                dotB.style.cssText = 'width: 12px; height: 12px; border-radius: 50%; background: ' + (i < gamesB ? 'var(--primary-blue)' : 'rgba(255,255,255,0.2)') + '; transition: background 0.3s;';
+                dotB.style.cssText = 'width: 12px; height: 12px; border-radius: 50%; background: ' + (i < rightGames ? 'var(--primary-blue)' : 'rgba(255,255,255,0.2)') + '; transition: background 0.3s;';
                 dom.gamesWonB.appendChild(dotB);
             }
         }
@@ -2361,14 +2377,26 @@
 
             if (player === 'A') {
                 state.match.playerA.score++;
-                animateScore(dom.scoreA);
             } else {
                 state.match.playerB.score++;
+            }
+
+            // 根据当前UI状态确定动画目标元素
+            const leftPlayer = getLeftPlayer();
+            const rightPlayer = getRightPlayer();
+            if (player === leftPlayer) {
+                animateScore(dom.scoreA);
+            } else if (player === rightPlayer) {
                 animateScore(dom.scoreB);
             }
 
             state.match.currentServer = player;
             updateScoringUI();
+
+            if (state.ui.landscapeMode) {
+                updateLandscapeUI();
+            }
+
             checkWinCondition();
         }
 
@@ -2377,17 +2405,29 @@
 
             saveHistoryState();
 
+            const leftPlayer = getLeftPlayer();
+            const rightPlayer = getRightPlayer();
+
             if (player === 'A' && state.match.playerA.score > 0) {
                 state.match.playerA.score--;
-                dom.scoreA.style.animation = 'shake 0.3s ease-out';
-                setTimeout(() => dom.scoreA.style.animation = '', 300);
             } else if (player === 'B' && state.match.playerB.score > 0) {
                 state.match.playerB.score--;
+            }
+
+            // 根据当前UI状态确定动画目标元素
+            if (player === leftPlayer) {
+                dom.scoreA.style.animation = 'shake 0.3s ease-out';
+                setTimeout(() => dom.scoreA.style.animation = '', 300);
+            } else if (player === rightPlayer) {
                 dom.scoreB.style.animation = 'shake 0.3s ease-out';
                 setTimeout(() => dom.scoreB.style.animation = '', 300);
             }
 
             updateScoringUI();
+
+            if (state.ui.landscapeMode) {
+                updateLandscapeUI();
+            }
         }
 
         function animateScore(element) {
@@ -2443,7 +2483,7 @@
                 }
 
                 const currentGameNum = state.match.gamesWonA + state.match.gamesWonB;
-                const winnerName = winner === 'A' ? state.match.playerA.name : state.match.playerB.name;
+                const winnerName = getPlayerName(winner);
 
                 if (winner === 'A') {
                     state.match.gamesWonA++;
@@ -2456,20 +2496,29 @@
                 } else if (state.match.gamesWonB >= minWins) {
                     endMatch('B');
                 } else {
-                    if (isLandscapeMode) {
+                    if (state.ui.landscapeMode) {
                         showLandscapeGameOver(currentGameNum, scoreA, scoreB, winnerName);
                     } else {
                         showGameOver(currentGameNum, scoreA, scoreB, winnerName);
                     }
-                    setTimeout(() => {
+
+                    setTimeout(async () => {
+                        await wait(2500);
                         hideGameOver();
                         hideLandscapeGameOver();
+
+                        state.ui.sideChangePending = true;
                         showSideSwitchModal(() => {
+                            state.ui.sideChangePending = false;
                             startNewGame();
                         });
                     }, 3000);
                 }
             }
+        }
+
+        function wait(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
         }
 
         function startNewGame() {
@@ -2483,6 +2532,12 @@
             }
 
             updateScoringUI();
+
+            if (state.ui.landscapeMode) {
+                updateLandscapeUI();
+                hideLandscapeVictory();
+            }
+
             showToast('第 ' + (state.match.gamesWonA + state.match.gamesWonB + 1) + ' 局开始！', 'success');
         }
 
@@ -2521,7 +2576,7 @@
             renderGamesRecord();
             launchConfetti();
 
-            if (isLandscapeMode) {
+            if (state.ui.landscapeMode) {
                 showLandscapeVictory(winner, finalScoreA, finalScoreB);
             }
 
@@ -2574,6 +2629,17 @@
         }
 
         function newMatch() {
+            // 清除所有overlay
+            clearAllOverlays();
+
+            // 重置UI状态
+            state.ui.uiState = { left: 'A', right: 'B' };
+            state.ui.sideChangePending = false;
+
+            // 如果在横屏模式，更新UI
+            updateLandscapeUI();
+
+            // 导航到设置页面
             navigateTo('setupPage');
             dom.playerAName.value = state.match.playerA.name;
             dom.playerBName.value = state.match.playerB.name;
@@ -2716,6 +2782,27 @@
                 clearInterval(state.match.timer.interval);
             }
             state.match.timer.interval = null;
+
+            // 重置所有状态
+            state.match.playerA.score = 0;
+            state.match.playerB.score = 0;
+            state.match.gamesWonA = 0;
+            state.match.gamesWonB = 0;
+            state.match.isDeuce = false;
+            state.match.isAtCap = false;
+            state.match.isComplete = false;
+            state.match.winner = null;
+            state.ui.uiState = { left: 'A', right: 'B' };
+            state.ui.sideChangePending = false;
+
+            // 清除所有overlay
+            clearAllOverlays();
+
+            // 如果在横屏模式，退出横屏
+            if (state.ui.landscapeMode) {
+                disableLandscapeMode();
+            }
+
             closeExitConfirm();
             navigateTo('welcomePage');
         }
@@ -2731,18 +2818,13 @@
 
             const leftEl = document.getElementById('sideSwitchLeft');
             const rightEl = document.getElementById('sideSwitchRight');
+            const leftPlayer = getLeftPlayer();
+            const rightPlayer = getRightPlayer();
 
-            if (state.match.swappedSides) {
-                leftEl.textContent = state.match.playerB.name;
-                leftEl.style.color = 'var(--primary-blue)';
-                rightEl.textContent = state.match.playerA.name;
-                rightEl.style.color = 'var(--primary-green)';
-            } else {
-                leftEl.textContent = state.match.playerA.name;
-                leftEl.style.color = 'var(--primary-green)';
-                rightEl.textContent = state.match.playerB.name;
-                rightEl.style.color = 'var(--primary-blue)';
-            }
+            leftEl.textContent = getPlayerName(leftPlayer);
+            leftEl.style.color = 'var(--primary-green)';
+            rightEl.textContent = getPlayerName(rightPlayer);
+            rightEl.style.color = 'var(--primary-blue)';
 
             const modal = document.getElementById('sideSwitchModal');
             modal.style.display = 'flex';
@@ -2753,7 +2835,12 @@
             modal.style.display = 'none';
 
             if (swapPositions) {
-                state.match.swappedSides = !state.match.swappedSides;
+                swapSides();
+            }
+
+            updateScoringUI();
+            if (state.ui.landscapeMode) {
+                updateLandscapeUI();
             }
 
             if (pendingSideSwitchCallback) {
@@ -2765,6 +2852,11 @@
         function skipSideSwitch() {
             const modal = document.getElementById('sideSwitchModal');
             modal.style.display = 'none';
+
+            updateScoringUI();
+            if (state.ui.landscapeMode) {
+                updateLandscapeUI();
+            }
 
             if (pendingSideSwitchCallback) {
                 pendingSideSwitchCallback();
@@ -2932,7 +3024,6 @@
 
         // ==================== 横屏全屏赛事模式 ====================
 
-        let isLandscapeMode = false;
         let isFullscreen = false;
         let landscapeGestureStartTime = 0;
         let landscapeLongPressTimer = null;
@@ -2956,8 +3047,8 @@
          * 启用横屏模式
          */
         function enableLandscapeMode() {
-            if (isLandscapeMode) return;
-            isLandscapeMode = true;
+            if (state.ui.landscapeMode) return;
+            state.ui.landscapeMode = true;
 
             document.body.classList.add('landscape-mode');
             updateLandscapeUI();
@@ -2972,8 +3063,8 @@
          * 禁用横屏模式
          */
         function disableLandscapeMode() {
-            if (!isLandscapeMode) return;
-            isLandscapeMode = false;
+            if (!state.ui.landscapeMode) return;
+            state.ui.landscapeMode = false;
 
             document.body.classList.remove('landscape-mode');
             exitFullscreen();
@@ -2983,47 +3074,42 @@
          * 更新横屏UI
          */
         function updateLandscapeUI() {
-            const s = state;
-            const swapped = s.match.swappedSides;
+            const leftPlayer = getLeftPlayer();
+            const rightPlayer = getRightPlayer();
 
-            if (swapped) {
-                document.getElementById('landscapeScoreA').textContent = s.match.playerB.score;
-                document.getElementById('landscapeScoreB').textContent = s.match.playerA.score;
-                document.getElementById('landscapeNameA').textContent = s.match.playerB.name;
-                document.getElementById('landscapeNameB').textContent = s.match.playerA.name;
+            document.getElementById('landscapeScoreA').textContent = getPlayerScore(leftPlayer);
+            document.getElementById('landscapeScoreB').textContent = getPlayerScore(rightPlayer);
+            document.getElementById('landscapeNameA').textContent = getPlayerName(leftPlayer);
+            document.getElementById('landscapeNameB').textContent = getPlayerName(rightPlayer);
 
-                document.getElementById('landscapeAddBtnA').setAttribute('onclick', "landscapeAddScore('B')");
-                document.getElementById('landscapeAddBtnB').setAttribute('onclick', "landscapeAddScore('A')");
-            } else {
-                document.getElementById('landscapeScoreA').textContent = s.match.playerA.score;
-                document.getElementById('landscapeScoreB').textContent = s.match.playerB.score;
-                document.getElementById('landscapeNameA').textContent = s.match.playerA.name;
-                document.getElementById('landscapeNameB').textContent = s.match.playerB.name;
-
-                document.getElementById('landscapeAddBtnA').setAttribute('onclick', "landscapeAddScore('A')");
-                document.getElementById('landscapeAddBtnB').setAttribute('onclick', "landscapeAddScore('B')");
-            }
+            // 更新按钮文字和点击处理
+            const landscapeAddBtnA = document.getElementById('landscapeAddBtnA');
+            const landscapeAddBtnB = document.getElementById('landscapeAddBtnB');
+            landscapeAddBtnA.textContent = '+1 ' + getPlayerName(leftPlayer);
+            landscapeAddBtnB.textContent = '+1 ' + getPlayerName(rightPlayer);
+            landscapeAddBtnA.onclick = () => landscapeAddScore(leftPlayer);
+            landscapeAddBtnB.onclick = () => landscapeAddScore(rightPlayer);
 
             // 更新局数
-            const currentGame = s.match.gamesWonA + s.match.gamesWonB + 1;
+            const currentGame = state.match.gamesWonA + state.match.gamesWonB + 1;
             document.getElementById('landscapeGameBadge').textContent = '第 ' + currentGame + ' 局';
-            document.getElementById('landscapeScoringBadge').textContent = s.settings.scoring + '分制';
+            document.getElementById('landscapeScoringBadge').textContent = state.match.settings.scoring + '分制';
 
             // 更新局数指示器
-            updateLandscapeGamesWon(s);
+            updateLandscapeGamesWon();
 
             // 更新发球方
-            updateLandscapeServer(s, swapped);
+            updateLandscapeServer();
 
             // 更新计时器
-            document.getElementById('landscapeTimer').textContent = formatTime(s.match.timer.elapsed);
+            document.getElementById('landscapeTimer').textContent = formatTime(state.match.timer.elapsed);
 
             // 更新Deuce状态
             const scoreArea = document.getElementById('landscapeScoreArea');
             const deuceBanner = document.getElementById('landscapeDeuceBanner');
             const matchPoint = document.getElementById('landscapeMatchPoint');
 
-            if (s.match.isDeuce) {
+            if (state.match.isDeuce) {
                 scoreArea.classList.add('deuce-state');
                 deuceBanner.classList.remove('hidden');
                 matchPoint.classList.add('hidden');
@@ -3032,7 +3118,7 @@
                 deuceBanner.classList.add('hidden');
 
                 const vm = window.voiceManager;
-                const isMP = vm && vm.isMatchPoint(s.match.playerA.score, s.match.playerB.score);
+                const isMP = vm && vm.isMatchPoint(state.match.playerA.score, state.match.playerB.score);
                 if (isMP) {
                     matchPoint.classList.remove('hidden');
                 } else {
@@ -3044,25 +3130,26 @@
         /**
          * 更新横屏局数指示器
          */
-        function updateLandscapeGamesWon(s) {
-            const gamesToWin = s.settings.gamesToWin;
-            const swapped = s.match.swappedSides;
-            const gamesA = swapped ? s.match.gamesWonB : s.match.gamesWonA;
-            const gamesB = swapped ? s.match.gamesWonA : s.match.gamesWonB;
+        function updateLandscapeGamesWon() {
+            const leftPlayer = getLeftPlayer();
+            const rightPlayer = getRightPlayer();
+            const leftGames = getGamesWon(leftPlayer);
+            const rightGames = getGamesWon(rightPlayer);
 
             const containerA = document.getElementById('landscapeGamesA');
             const containerB = document.getElementById('landscapeGamesB');
+            const gamesToWin = state.match.settings.gamesToWin;
 
             containerA.innerHTML = '';
             containerB.innerHTML = '';
 
             for (let i = 0; i < gamesToWin; i++) {
                 const dotA = document.createElement('div');
-                dotA.className = 'landscape-game-dot' + (i < gamesA ? ' won' : '');
+                dotA.className = 'landscape-game-dot' + (i < leftGames ? ' won' : '');
                 containerA.appendChild(dotA);
 
                 const dotB = document.createElement('div');
-                dotB.className = 'landscape-game-dot' + (i < gamesB ? ' won' : '');
+                dotB.className = 'landscape-game-dot' + (i < rightGames ? ' won' : '');
                 containerB.appendChild(dotB);
             }
         }
@@ -3070,17 +3157,14 @@
         /**
          * 更新横屏发球方
          */
-        function updateLandscapeServer(s, swapped) {
+        function updateLandscapeServer() {
+            const leftPlayer = getLeftPlayer();
+            const rightPlayer = getRightPlayer();
             const sideA = document.getElementById('landscapeSideA');
             const sideB = document.getElementById('landscapeSideB');
 
-            if (swapped) {
-                sideA.classList.toggle('serving', s.match.currentServer === 'B');
-                sideB.classList.toggle('serving', s.match.currentServer === 'A');
-            } else {
-                sideA.classList.toggle('serving', s.match.currentServer === 'A');
-                sideB.classList.toggle('serving', s.match.currentServer === 'B');
-            }
+            sideA.classList.toggle('serving', isServer(leftPlayer));
+            sideB.classList.toggle('serving', isServer(rightPlayer));
         }
 
         /**
@@ -3093,11 +3177,6 @@
             if (navigator.vibrate) {
                 navigator.vibrate(30);
             }
-
-            // 涟漪动画 - 根据点击的是哪个按钮
-            const isLeftButton = player === 'A' && !state.match.swappedSides || player === 'B' && state.match.swappedSides;
-            const rippleZone = isLeftButton ? 'gestureZoneA' : 'gestureZoneB';
-            createRipple(document.getElementById(rippleZone));
 
             // 更新UI
             setTimeout(updateLandscapeUI, 50);
@@ -3260,6 +3339,52 @@
         }
 
         /**
+         * 清除所有overlay
+         */
+        function clearAllOverlays() {
+            // 隐藏竖屏 gameOver overlay
+            const gameOverOverlay = document.getElementById('gameOverOverlay');
+            if (gameOverOverlay) {
+                gameOverOverlay.style.display = 'none';
+                gameOverOverlay.style.animation = '';
+            }
+
+            // 隐藏横屏 gameOver banner
+            const landscapeGameOverBanner = document.getElementById('landscapeGameOverBanner');
+            if (landscapeGameOverBanner) {
+                landscapeGameOverBanner.classList.add('hidden');
+                landscapeGameOverBanner.style.animation = '';
+            }
+
+            // 隐藏横屏胜利overlay
+            hideLandscapeVictory();
+
+            // 隐藏换边弹窗
+            const sideSwitchModal = document.getElementById('sideSwitchModal');
+            if (sideSwitchModal) {
+                sideSwitchModal.style.display = 'none';
+            }
+
+            // 隐藏退出确认弹窗
+            const exitModal = document.getElementById('exitModal');
+            if (exitModal) {
+                exitModal.style.display = 'none';
+            }
+
+            // 清除Deuce状态
+            const deuceOverlay = document.getElementById('deuceOverlay');
+            if (deuceOverlay) {
+                deuceOverlay.style.display = 'none';
+            }
+
+            // 清除封顶提示
+            const capOverlay = document.getElementById('capOverlay');
+            if (capOverlay) {
+                capOverlay.style.display = 'none';
+            }
+        }
+
+        /**
          * 显示局结束提示（竖屏）
          */
         function showGameOver(gameNum, scoreA, scoreB, winner) {
@@ -3278,10 +3403,6 @@
             if (navigator.vibrate) {
                 navigator.vibrate([50, 30, 100]);
             }
-
-            setTimeout(() => {
-                hideGameOver();
-            }, 3000);
         }
 
         /**
@@ -3317,10 +3438,6 @@
             if (navigator.vibrate) {
                 navigator.vibrate([50, 30, 100]);
             }
-
-            setTimeout(() => {
-                hideLandscapeGameOver();
-            }, 3000);
         }
 
         /**
@@ -3375,9 +3492,11 @@
          * 横屏比分动画
          */
         function animateLandscapeScore(player) {
-            const elem = player === 'A'
-                ? document.getElementById('landscapeScoreA')
-                : document.getElementById('landscapeScoreB');
+            // 根据当前UI状态映射找到正确的DOM元素
+            const leftPlayer = getLeftPlayer();
+            const rightPlayer = getRightPlayer();
+            const elemId = player === leftPlayer ? 'landscapeScoreA' : (player === rightPlayer ? 'landscapeScoreB' : null);
+            const elem = elemId ? document.getElementById(elemId) : null;
 
             if (elem) {
                 elem.classList.remove('score-up', 'score-glow');
@@ -3397,18 +3516,20 @@
             const zoneA = document.getElementById('gestureZoneA');
             const zoneB = document.getElementById('gestureZoneB');
 
-            // 左区点击加分A
+            // 左区点击加分（根据当前UI状态映射）
             zoneA.addEventListener('click', (e) => {
                 if (!state.match.isComplete) {
-                    landscapeAddScore('A');
+                    const leftPlayer = getLeftPlayer();
+                    landscapeAddScore(leftPlayer);
                     createRipple(zoneA, e);
                 }
             });
 
-            // 右区点击加分B
+            // 右区点击加分（根据当前UI状态映射）
             zoneB.addEventListener('click', (e) => {
                 if (!state.match.isComplete) {
-                    landscapeAddScore('B');
+                    const rightPlayer = getRightPlayer();
+                    landscapeAddScore(rightPlayer);
                     createRipple(zoneB, e);
                 }
             });
@@ -3491,7 +3612,7 @@
 
             // 订阅状态变化以更新横屏UI
             store.subscribe((state) => {
-                if (state.currentPage === 'scoringPage' && isLandscapeMode) {
+                if (state.currentPage === 'scoringPage' && state.ui.landscapeMode) {
                     updateLandscapeUI();
 
                     // 检查比赛结束
